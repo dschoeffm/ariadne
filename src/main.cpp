@@ -8,23 +8,36 @@
 #include "table.hpp"
 #include "naive.hpp"
 
-
+#define DUMP_FIB 0
+#define RANDOM 0
+#define CHALLENGE 1
 
 int main(int argc, char** argv){
+#if CHALLENGE == 1
 	if(argc < 3){
 		cout << "Usage: " << argv[0] << " <fib_file> <challenge_file>" << endl;
 		return 0;
 	}
+#else
+	if(argc < 2){
+		cout << "Usage: " << argv[0] << " <rib file>" << endl;
+		return 0;
+	}
+#endif
+
 	string filename(argv[1]);
-
 	Table table(filename);
-	//table.aggregate();
-	//table.print_table();
 
+#if DUMP_FIB == 1
+	table.aggregate();
+	table.print_table();
+#endif
+
+#if RANDOM == 1
 	Naive naive(table);
 
 	clock_t start = clock();
-	for(int i=0; i<5000; i++){
+	for(int i=0; i<100; i++){
 		uint32_t addr = random();
 		uint32_t res = naive.route(addr);
 		cout << ip_to_str(addr) << " " << ip_to_str(res) << endl;
@@ -32,9 +45,9 @@ int main(int argc, char** argv){
 	clock_t end = clock();
 
 	cerr << "Lookups took " << (1.0*(end-start)) / CLOCKS_PER_SEC << " seconds" << endl;
+#endif
 
-
-	/*
+#if CHALLENGE == 1
 	list<pair<uint32_t, uint32_t>> challenge;
 	ifstream dump(argv[2]);
 	regex regex("^(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)$");
@@ -71,6 +84,7 @@ int main(int argc, char** argv){
 	int failed = 0;
 	int success = 0;
 	Naive naive(table);
+	clock_t start = clock();
 	for(auto& a : challenge){
 		uint32_t res = naive.route(a.first);
 		if(res != a.second){
@@ -82,8 +96,13 @@ int main(int argc, char** argv){
 			success++;
 		}
 	}
+	clock_t end = clock();
+
+	cerr << "Lookups took " << (1.0*(end-start)) / CLOCKS_PER_SEC << " seconds" << endl;
 
 	cout << "Successful lookups: " << success << endl;
 	cout << "Failed lookups: " << failed << endl;
-	*/
+#endif
+
+	return 0;
 }

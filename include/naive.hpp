@@ -7,7 +7,7 @@
 
 class Naive {
 private:
-	const vector<list<pair<uint32_t, uint32_t>>>& entries;
+	const vector<map<uint32_t, uint32_t>>& entries;
 	uint32_t masks[33];
 
 public:
