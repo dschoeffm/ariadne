@@ -4,7 +4,10 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 	for(int len=0; len<33; len++){
 		for(auto& p: entries[len]){
 			uint32_t p_start = p.first;
-			uint32_t p_end = p.first | ((2<<len)-1);
+			uint32_t p_end = p.first | ((2<<(31-len))-1);
+			if(len == 32){
+				p_end = p_start;
+			}
 
 			struct expand_entry p_entry;
 			p_entry.start = p_start;
@@ -18,7 +21,7 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 				continue;
 			}
 			// Check if there is a hole at the beginning
-			else if(it->start < p_end){
+			else if(it->start > p_end){
 				expansion.insert(it, p_entry);
 				continue;
 			}
@@ -26,7 +29,8 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 			bool mod_in_for = false;
 			for(; it != expansion.end(); it++) {
 				// Check if the prefix is between this range and the next
-				if(next(it) != expansion.end() && it->end < p_start && next(it)->start > p_end){
+				if(next(it) != expansion.end() &&
+						it->end < p_start && next(it)->start > p_end){
 					expansion.insert(next(it), p_entry);
 					mod_in_for = true;
 					break;
@@ -49,6 +53,7 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 				// a range in the list
 				else if((p_start >= it->start) && (p_end <= it->end)){
 					// Set old entry to end before the new entry
+					uint32_t old_end = it->end;
 					it->end = p.first -1;
 
 					// Insert the new prefix
@@ -56,7 +61,7 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 
 					// Create the entry to continue the old one
 					p_entry.start = p_entry.end +1;
-					p_entry.end = it->end;
+					p_entry.end = old_end;
 					p_entry.next_hop = it->next_hop;
 					it++; // now points to the new prefix
 					expansion.insert(next(it), p_entry);
@@ -76,8 +81,6 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 			}
 		}
 	}
-
-	print_expansion();
 };
 
 uint32_t DXR::route(uint32_t addr) {
@@ -85,8 +88,10 @@ uint32_t DXR::route(uint32_t addr) {
 };
 
 void DXR::print_expansion(){
-	cout << "Expansion table:" << endl;
+	cout << endl << "Expansion table:" << endl;
 	for(auto& e : expansion){
-		cout << e.start << "\t.. " << e.end << "\t" << e.next_hop << endl;
+		cout << ip_to_str(e.start)
+			<< "\t.. " << ip_to_str(e.end)
+			<< "\t" << ip_to_str(e.next_hop) << endl;
 	}
 }

@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "table.hpp"
+#include "util.hpp"
 
 class DXR {
 private:

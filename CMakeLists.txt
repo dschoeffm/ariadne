@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 SET(CMAKE_CXX_COMPILER "clang++")
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -g -std=c++11 -stdlib=libc++")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -O0 -g -std=c++11 -stdlib=libc++")
 
 INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/include
