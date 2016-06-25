@@ -7,10 +7,11 @@
 #include "util.hpp"
 #include "table.hpp"
 #include "naive.hpp"
+#include "dxr.hpp"
 
 #define DUMP_FIB 0
 #define RANDOM 0
-#define CHALLENGE 1
+#define CHALLENGE 0
 
 int main(int argc, char** argv){
 #if CHALLENGE == 1
@@ -27,6 +28,8 @@ int main(int argc, char** argv){
 
 	string filename(argv[1]);
 	Table table(filename);
+
+	DXR dxr(table);
 
 #if DUMP_FIB == 1
 	table.aggregate();
