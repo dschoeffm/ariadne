@@ -1,6 +1,6 @@
 #include "dxr.hpp"
 
-DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
+void DXR::expand(){
 	for(int len=0; len<33; len++){
 		for(auto& p: entries[len]){
 			uint32_t p_start = p.first;
@@ -81,10 +81,98 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 			}
 		}
 	}
+
+	// TODO merge
+};
+
+void DXR::reduce(){
+	vector<list<uint32_t>> pre;
+	pre.resize(2<<15);
+	for(auto& e : expansion){
+		uint16_t upper_start = (e.start & 0xffff0000) >> 16;
+		uint16_t upper_end = (e.end & 0xffff0000) >> 16;
+
+		uint16_t lower_start = (e.start & 0x0000ffff);
+		//uint16_t lower_end = (e.end & 0x0000ffff); // XXX Not needed?
+
+		uint16_t next_hop_idx = 0xffff;
+		// Search for existing entry for the next hop
+		for(uint16_t i=0; i<next_hop_table.size(); i++){
+			if(next_hop_table[i] == e.next_hop){
+				next_hop_idx = i;
+			}
+		}
+		// Insert the next hop if needed
+		if(next_hop_idx == 0xffff){
+			next_hop_table.push_back(e.next_hop);
+			next_hop_idx = next_hop_table.size()-1;
+		}
+
+		// Insert the start IPs and next hops in the "pre" buckets
+		// upper 16 bit: IP address (lower 16 bit)
+		// lower 16 bit: next hop idx
+		pre[upper_start].push_back((lower_start << 16) | next_hop_idx);
+		for(int i=upper_start+1; i<=upper_end; i++){
+			pre[i].push_back(next_hop_idx);
+		}
+	}
+
+	unsigned int off = 0;
+	for(int i=0; i<(2<<15); i++){
+		if(pre[i].size() == 1){ // No range table for this entry
+			uint32_t entry = 0;
+			// format does not make a lot of sense
+			// size is 0 -> magic number
+			entry |= (*(pre[i].begin()) & 0x0000ffff) << DXR_POSITION_SHIFT;
+			lookup_table[i] = entry;
+		} else { // We need a range table
+			cout << "encountered range, IP: " << ip_to_str(i<<16) << endl;
+			unsigned int size = pre[i].size();
+			uint32_t entry = 0;
+			entry |= DXR_FORMAT;
+			entry |= size << DXR_SIZE_SHIFT;
+			entry |= off << DXR_POSITION_SHIFT;
+			lookup_table[i] = entry;
+			off += size;
+			for(uint32_t e : pre[i]){
+				struct range_long entry;
+				entry.start = (e & 0xffff0000) >> 16;
+				entry.next_hop = e & 0x0000ffff;
+				range_table.push_back(entry);
+			}
+		}
+	}
+};
+
+DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
+	expand();
+	lookup_table.resize(2<<16);
+	reduce();
 };
 
 uint32_t DXR::route(uint32_t addr) {
-	return addr; // Just for editor
+	// TODO Assuming long format for now
+	cerr << "IP address: " << ip_to_str(addr) << endl;
+	uint32_t lookup_entry = lookup_table[(addr & 0xffff0000) >> 16];
+	int pos = (lookup_entry & DXR_POSITION) >> DXR_POSITION_SHIFT;
+	int size = (lookup_entry & DXR_SIZE) >> DXR_SIZE_SHIFT;
+	if(!size){ // access next_hop_table
+		cerr << "Direct lookup in next_hop_table" << endl;
+		return next_hop_table[pos];
+	}
+
+	uint16_t lower = addr & 0x0000ffff;
+	// TODO Should be a binary search instead
+	for(int i=pos; i<pos+size; i++){
+		uint16_t start = range_table[i].start;
+		uint16_t end = range_table[i+1].start;
+		if((start < lower) && (lower < end)){
+			uint16_t next_hop_idx = range_table[i].next_hop;
+			return next_hop_table[next_hop_idx];
+		}
+	}
+
+	return 0xffffffff;
 };
 
 void DXR::print_expansion(){
@@ -94,4 +182,25 @@ void DXR::print_expansion(){
 			<< "\t.. " << ip_to_str(e.end)
 			<< "\t" << ip_to_str(e.next_hop) << endl;
 	}
-}
+};
+
+void DXR::print_tables(){
+	cout << endl << "DXR tables:" << endl;
+	for(uint16_t i=0; i<(2<<15)-1; i++){
+		uint32_t val = lookup_table[i];
+		int val_size = (val & DXR_SIZE) >> DXR_SIZE_SHIFT;
+		int val_pos = (val&DXR_POSITION) >> DXR_POSITION_SHIFT;
+		if(val_size == 0){
+			cout << "Prefix: " << ip_to_str(i<<16) << " next hop: " << val_pos << endl;
+		} else {
+			cout << "Prefix: " << ip_to_str(i<<16) << endl;
+			for(int j=val_pos; j<(val_pos+val_size); j++){
+				cout << "    Start: " << ip_to_str(range_table[j].start)
+					<< " next hop: " << range_table[j].next_hop << endl;
+			}
+		}
+	}
+	for(unsigned int i=0; i<next_hop_table.size(); i++){
+		cout << "Next Hop: " << i << " IP: " << ip_to_str(next_hop_table[i]) << endl;
+	}
+};

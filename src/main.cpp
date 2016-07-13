@@ -11,7 +11,7 @@
 
 #define DUMP_FIB 0
 #define RANDOM 0
-#define CHALLENGE 0
+#define CHALLENGE 1
 
 int main(int argc, char** argv){
 #if CHALLENGE == 1
@@ -29,8 +29,6 @@ int main(int argc, char** argv){
 	string filename(argv[1]);
 	Table table(filename);
 
-	DXR dxr(table);
-
 #if DUMP_FIB == 1
 	table.aggregate();
 	table.print_table();
@@ -40,7 +38,7 @@ int main(int argc, char** argv){
 	Naive naive(table);
 
 	clock_t start = clock();
-	for(int i=0; i<100; i++){
+	for(int i=0; i<1000; i++){
 		uint32_t addr = random();
 		uint32_t res = naive.route(addr);
 		cout << ip_to_str(addr) << " " << ip_to_str(res) << endl;
@@ -86,14 +84,16 @@ int main(int argc, char** argv){
 
 	int failed = 0;
 	int success = 0;
-	Naive naive(table);
+	DXR lpm(table);
+	//lpm.print_tables();
+	lpm.print_expansion();
 	clock_t start = clock();
 	for(auto& a : challenge){
-		uint32_t res = naive.route(a.first);
+		uint32_t res = lpm.route(a.first);
 		if(res != a.second){
-			cout << "Failed" << endl;
+			cout << "Failed IP: " << ip_to_str(a.first) << endl;
 			cout << "Expected: " << ip_to_str(a.second) << endl;
-			cout << "Got     : " << ip_to_str(res) << endl;
+			cout << "Got     : " << ip_to_str(res) << endl << endl;
 			failed++;
 		} else {
 			success++;
