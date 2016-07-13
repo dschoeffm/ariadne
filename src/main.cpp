@@ -86,7 +86,7 @@ int main(int argc, char** argv){
 	int success = 0;
 	DXR lpm(table);
 	//lpm.print_tables();
-	lpm.print_expansion();
+	//lpm.print_expansion();
 	clock_t start = clock();
 	for(auto& a : challenge){
 		uint32_t res = lpm.route(a.first);

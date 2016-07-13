@@ -126,7 +126,6 @@ void DXR::reduce(){
 			entry |= (*(pre[i].begin()) & 0x0000ffff) << DXR_POSITION_SHIFT;
 			lookup_table[i] = entry;
 		} else { // We need a range table
-			cout << "encountered range, IP: " << ip_to_str(i<<16) << endl;
 			unsigned int size = pre[i].size();
 			uint32_t entry = 0;
 			entry |= DXR_FORMAT;
@@ -152,12 +151,10 @@ DXR::DXR(Table& table) : entries(table.get_sorted_entries()) {
 
 uint32_t DXR::route(uint32_t addr) {
 	// TODO Assuming long format for now
-	cerr << "IP address: " << ip_to_str(addr) << endl;
 	uint32_t lookup_entry = lookup_table[(addr & 0xffff0000) >> 16];
 	int pos = (lookup_entry & DXR_POSITION) >> DXR_POSITION_SHIFT;
 	int size = (lookup_entry & DXR_SIZE) >> DXR_SIZE_SHIFT;
 	if(!size){ // access next_hop_table
-		cerr << "Direct lookup in next_hop_table" << endl;
 		return next_hop_table[pos];
 	}
 
