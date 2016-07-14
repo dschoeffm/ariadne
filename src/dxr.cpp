@@ -1,5 +1,6 @@
 #include "dxr.hpp"
 
+#if 0
 void DXR::expand(){
 	for(int len=0; len<33; len++){
 		for(auto& p: entries[len]){
@@ -83,6 +84,83 @@ void DXR::expand(){
 	}
 
 	// TODO merge
+};
+#endif
+
+void DXR::expand(){
+	bool finished = false;
+	vector<map<uint32_t, uint32_t>::const_iterator> its;
+	for(int i=0; i<33; i++){
+		its.push_back(entries[i].begin());
+	}
+
+	while(!finished){
+		before_for: // XXX goto label
+		finished = true;
+		for(int len=32; len>=0; len--){
+			// Have we reached the end of the current prefix length?
+			if(its[len] == entries[len].end()){
+				continue;
+			}
+			finished = false;
+
+			uint32_t p_start = (its[len])->first;
+			uint32_t p_end = p_start | ((2<<(31-len))-1);
+			uint32_t next_hop = its[len]->second;
+
+			struct expand_entry e;
+			e.start = p_start;
+			e.end = p_end;
+			e.next_hop = next_hop;
+
+			// Is there at least one element in the list?
+			if(expansion.begin() == expansion.end()){
+				if(p_start == 0){
+					expansion.push_back(e);
+					goto before_for;
+				} else {
+					continue;
+				}
+			}
+
+			list<struct expand_entry>::iterator cur = expansion.end();
+			cur = prev(cur); // point to the last element
+
+			if(cur->start == p_start && cur->end > p_end){
+				// Insert new entry at the beginning of cur
+				cur->start = p_end+1;
+
+				expansion.insert(cur, e);
+
+				its[len]++;
+				goto before_for; // XXX goto is here
+			} else if(cur->start < p_start && cur->end == p_end){
+				// Insert new entry at the end of cur
+				cur->end = p_start-1;
+
+				expansion.push_back(e);
+
+				its[len]++;
+				goto before_for; // XXX goto is here
+			} else if(cur->start < p_start && cur->end > p_end){
+				// Insert new entry inside cur
+				struct expand_entry old = *cur;
+
+				cur->end = p_start-1;
+				expansion.push_back(e);
+				old.start = p_start+1;
+				expansion.push_back(old);
+
+				its[len]++;
+				goto before_for; // XXX goto is here
+			} else if(cur->end < p_start){
+				// This entry does not apply yet
+			} else {
+				// I fucked up
+				cerr << "Unexpected state during expansion" << endl;
+			}
+		}
+	}
 };
 
 void DXR::reduce(){
