@@ -8,6 +8,7 @@
 
 using namespace std;
 
+// avoids function not used warnings when using static
 inline string ip_to_str(uint32_t ip){
 	struct in_addr in_addr;
 	in_addr.s_addr = htonl(ip);
