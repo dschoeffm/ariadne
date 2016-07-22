@@ -20,7 +20,7 @@ void print_usage(string name){
 void dump_challenge(Table& table){
 	Naive naive(table);
 
-	for(int i=0; i<1000; i++){
+	for(int i=0; i<10000; i++){
 		uint32_t addr = random();
 		uint32_t res = naive.route(addr);
 		cout << ip_to_str(addr) << " " << ip_to_str(res) << endl;
@@ -66,8 +66,8 @@ void run_challenge(Table& table, string challenge_filename){
 	int failed = 0;
 	int success = 0;
 	DXR lpm(table);
+	lpm.print_expansion();
 	//lpm.print_tables();
-	//lpm.print_expansion();
 	clock_t start = clock();
 	for(auto& a : challenge){
 		uint32_t res = lpm.route(a.first);
