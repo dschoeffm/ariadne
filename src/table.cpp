@@ -77,7 +77,7 @@ void Table::aggregate() {
 			auto first = *it;
 			auto second = *(next(it));
 
-			if(((first.first ^ second.first) == (1 << (32-len)))
+			if(((first.first ^ second.first) == ((uint32_t) 1 << (32-len)))
 				&& (first.second == second.second)){
 				aggregated.push_back(
 					{first.first & (~(1 << (32-len))), second.second});

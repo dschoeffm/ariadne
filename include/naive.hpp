@@ -1,7 +1,8 @@
 #ifndef __NAIVE_HPP__
 #define __NAIVE_HPP__
 
-#include <bitset>
+#include <vector>
+#include <map>
 
 #include "table.hpp"
 

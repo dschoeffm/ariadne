@@ -17,6 +17,6 @@ uint32_t Naive::route(uint32_t addr) {
 			}
 		}
 	};
-	return 0;
+	return 0xffffffff;
 };
 
