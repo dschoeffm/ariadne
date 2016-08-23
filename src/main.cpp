@@ -65,9 +65,11 @@ void run_challenge(Table& table, string challenge_filename){
 
 	int failed = 0;
 	int success = 0;
+
 	DXR lpm(table);
 	lpm.print_expansion();
 	lpm.print_tables();
+
 	clock_t start = clock();
 	for(auto& a : challenge){
 		uint32_t res = lpm.route(a.first);
