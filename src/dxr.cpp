@@ -66,7 +66,6 @@ void DXR::expand(){
 			}
 
 			while(it2 != expansion.end() && it1->end < p_end){
-					// it2->end < p_end){
 				bool finished_entry = false;
 				// Is there even space between it1 and it2?
 				if(it1->end == (it2->start -1)){
@@ -254,16 +253,18 @@ uint32_t DXR::route(uint32_t addr) {
 
 	uint16_t lower = addr & 0x0000ffff;
 	// TODO Should be a binary search instead
-	for(int i=pos; i<pos+size; i++){
+	for(int i=pos; i<pos+size-1; i++){
 		uint16_t start = range_table[i].start;
 		uint16_t end = range_table[i+1].start;
-		if((start < lower) && (lower < end)){
+		if((start <= lower) && (lower < end)){
 			uint16_t next_hop_idx = range_table[i].next_hop;
 			return next_hop_table[next_hop_idx];
 		}
 	}
 
-	return 0xffffffff;
+	return next_hop_table[range_table[pos+size].next_hop];
+
+//	return 0xffffffff;
 };
 
 void DXR::print_expansion(){
