@@ -1,5 +1,7 @@
 #include "basicTrie.hpp"
 
+using namespace std;
+
 BasicTrie::Internal::Internal(Internal* left, Internal* right, Internal* parent, Leaf* leaf) :
 	left(left), right(right), parent(parent), leaf(leaf) {};
 

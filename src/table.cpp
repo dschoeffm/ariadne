@@ -1,5 +1,7 @@
 #include "table.hpp"
 
+using namespace std;
+
 Table::Table(string filename) {
 	entries.resize(33);
 

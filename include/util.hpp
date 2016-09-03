@@ -1,18 +1,17 @@
-#ifndef __UTIL_HPP__
-#define __UTIL_HPP__
+#ifndef UTIL_HPP
+#define UTIL_HPP
 
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-using namespace std;
 
-inline string ip_to_str(uint32_t ip){
+inline std::string ip_to_str(uint32_t ip){
 	struct in_addr in_addr;
 	in_addr.s_addr = htonl(ip);
-	string str(inet_ntoa(in_addr));
+	std::string str(inet_ntoa(in_addr));
 	return str;
 }
 
-#endif /*__UTIL_HPP__*/
+#endif /* UTIL_HPP */

@@ -1,5 +1,5 @@
-#ifndef __NAIVE_HPP__
-#define __NAIVE_HPP__
+#ifndef NAIVE_HPP
+#define NAIVE_HPP
 
 #include <vector>
 #include <map>
@@ -8,7 +8,7 @@
 
 class Naive {
 private:
-	const vector<map<uint32_t, uint32_t>>& entries;
+	const std::vector<std::map<uint32_t, uint32_t>>& entries;
 	uint32_t masks[33];
 
 public:
@@ -17,4 +17,4 @@ public:
 	uint32_t route(uint32_t);
 };
 
-#endif /*__NAIVE_HPP__*/
+#endif /* NAIVE_HPP */

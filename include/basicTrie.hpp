@@ -1,13 +1,7 @@
-#ifndef __BASICTRIE_HPP__
-#define __BASICTRIE_HPP__
-
-#include <vector>
-#include <utility>
-#include <memory>
+#ifndef BASICTRIE_HPP
+#define BASICTRIE_HPP
 
 #include "table.hpp"
-
-using namespace std;
 
 class BasicTrie {
 private:
@@ -54,4 +48,4 @@ public:
 	void routeBatch(uint32_t* in, uint32_t* out, int count);
 };
 
-#endif /* __BASICTRIE_HPP__ */
+#endif /* BASICTRIE_HPP */

@@ -1,5 +1,5 @@
-#ifndef __TABLE_HPP__
-#define __TABLE_HPP__
+#ifndef TABLE_HPP
+#define TABLE_HPP
 
 #include <iostream>
 #include <string>
@@ -15,8 +15,6 @@
 
 #include "util.hpp"
 
-using namespace std;
-
 class Table {
 public:
 	struct entry {
@@ -24,14 +22,14 @@ public:
 		uint32_t next_hop;
 	};
 private:
-	vector<map<uint32_t, uint32_t>> entries;
+	std::vector<std::map<uint32_t, uint32_t>> entries;
 
 public:
-	Table(string filename);
+	Table(std::string filename);
 
 	void aggregate();
 	void print_table();
-	const vector<map<uint32_t, uint32_t>>& get_sorted_entries();
+	const std::vector<std::map<uint32_t, uint32_t>>& get_sorted_entries();
 };
 
-#endif /*__TABLE_HPP__*/
+#endif /* TABLE_HPP */

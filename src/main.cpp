@@ -20,6 +20,8 @@
 
 #define CHALLENGE_VERSION 1
 
+using namespace std;
+
 struct challenge_header {
 	uint32_t version;
 	uint32_t num_entries;
