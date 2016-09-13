@@ -2,6 +2,7 @@
 #define BASICTRIE_HPP
 
 #include "table.hpp"
+#include "util.hpp"
 
 class BasicTrie {
 private:
@@ -33,12 +34,6 @@ private:
 	Table& table;
 
 	void buildTrie();
-
-	inline uint32_t extractBit(uint32_t addr, int pos) {
-		uint32_t mask = ((uint32_t) 1) << (31-pos);
-		uint32_t bit = addr & mask;
-		return (bit >> (31-pos));
-	};
 
 public:
 	BasicTrie(Table& table);
