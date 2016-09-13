@@ -39,6 +39,7 @@ void print_usage(string name){
 	cout << "\t --dump-fib <rib-file>" << endl;
 	cout << "\t --dump-challenge <fib-file> <challenge-file>" << endl;
 	cout << "\t --run-challenge <fib-file> <challenge-file>" << endl;
+	cout << "\t --convert-challenge <old-file> <new-file>" << endl;
 };
 
 void dump_challenge(Table& table, string filename){
@@ -65,7 +66,6 @@ void dump_challenge(Table& table, string filename){
 };
 
 void run_challenge(Table& table, string challenge_filename){
-
 	// read the challenge file
 	int fd = open(challenge_filename.c_str(), 0);
 	challenge_header header;
@@ -81,7 +81,7 @@ void run_challenge(Table& table, string challenge_filename){
 
 	char* mmap_base =  (char*) mmap(
 			NULL,
-		       	header.num_entries * sizeof(challenge_entry) + sizeof(challenge_header),
+			header.num_entries * sizeof(challenge_entry) + sizeof(challenge_header),
 			PROT_READ,
 			MAP_PRIVATE,
 			fd,
@@ -96,14 +96,16 @@ void run_challenge(Table& table, string challenge_filename){
 
 	int failed = 0;
 	int success = 0;
+
 	//DXR lpm(table);
 	//Naive lpm(table);
 	BasicTrie lpm(table);
+
 	//lpm.print_expansion();
 	//lpm.print_tables();
 	clock_t start = clock();
 
-#if 0
+#if 1
 	// No batching
 	for(unsigned int i=0; i<header.num_entries; i++){
 		uint32_t res = lpm.route(entries[i].addr);
@@ -158,12 +160,65 @@ void run_challenge(Table& table, string challenge_filename){
 
 	cout << "Successful lookups: " << success << endl;
 	cout << "Failed lookups: " << failed << endl;
-
 };
+
+void convert_challenge(string old_file, string new_file){
+	// read the challenge file
+	list<pair<uint32_t, uint32_t>> challenge;
+	ifstream dump(old_file);
+	regex regex("^(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)$");
+	while(1) {
+		bool finished = false;
+		string line;
+		if(dump.eof()){
+			finished = true;
+		} else {
+			getline(dump, line);
+		}
+		if(dump.eof()){
+			finished = true;
+		}
+
+		if(finished){
+			break;
+		}
+
+		smatch m;
+		uint32_t addr, next_hop;
+		struct in_addr in_addr;
+
+		regex_match(line, m, regex);
+
+		inet_aton(m[1].str().c_str(), &in_addr);
+		addr = ntohl(in_addr.s_addr);
+		inet_aton(m[2].str().c_str(), &in_addr);
+		next_hop = ntohl(in_addr.s_addr);
+
+		challenge.push_back({addr, next_hop});
+	}
+
+	ofstream challenge_file (new_file, ios::out | ios::binary);
+	struct challenge_header header;
+	header.version = CHALLENGE_VERSION;
+	header.num_entries = challenge.size();
+	header.reserved_1 = 0;
+	header.reserved_2 = 0;
+	challenge_file.write((char*) &header, sizeof(challenge_header));
+
+	for(auto& e : challenge){
+		challenge_entry entry;
+		entry.addr = e.first;
+		entry.next_hop = e.second;
+		challenge_file.write((char*) &entry, sizeof(challenge_entry));
+	}
+
+	challenge_file.close();
+
+}
 
 int main(int argc, char** argv){
 	string challenge_filename = "";
-	enum {DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE} mode;
+	enum {DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode;
 
 	if(argc < 3){
 		print_usage(string(argv[0]));
@@ -177,6 +232,9 @@ int main(int argc, char** argv){
 		challenge_filename = string(argv[3]);
 	} else if(strcmp(argv[1], "--run-challenge") == 0){
 		mode = RUN_CHALLENGE;
+		challenge_filename = string(argv[3]);
+	} else if(strcmp(argv[1], "--convert-challenge") == 0){
+		mode = CONVERT_CHALLENGE;
 		challenge_filename = string(argv[3]);
 	} else {
 		print_usage(string(argv[0]));
@@ -196,6 +254,9 @@ int main(int argc, char** argv){
 		break;
 		case RUN_CHALLENGE:
 			run_challenge(table, challenge_filename);
+		break;
+		case CONVERT_CHALLENGE:
+			convert_challenge(filename, challenge_filename);
 		break;
 	}
 
