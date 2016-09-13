@@ -1,7 +1,6 @@
 #include "naive.hpp"
 
-Naive::Naive(Table& table, bool texOutput) :
-	LPM(table, texOutput), entries(table.get_sorted_entries()) {
+Naive::Naive(Table& table) : entries(table.get_sorted_entries()) {
 	uint32_t mask = 0;
 	for(int i=0; i<33; i++){
 		masks[i] = mask;

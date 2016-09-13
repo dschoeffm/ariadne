@@ -37,7 +37,7 @@ void BasicTrie::buildTrie() {
 
 };
 
-BasicTrie::BasicTrie(Table& table, bool texOutput) : LPM(table, texOutput) {
+BasicTrie::BasicTrie(Table& table) : table(table) {
 	buildTrie();
 };
 

@@ -2,9 +2,8 @@
 #define BASICTRIE_HPP
 
 #include "table.hpp"
-#include "lpm.hpp"
 
-class BasicTrie : public LPM {
+class BasicTrie {
 private:
 
 	class Internal;
@@ -31,6 +30,7 @@ private:
 	};
 
 	Internal* root;
+	Table& table;
 
 	void buildTrie();
 
@@ -41,7 +41,7 @@ private:
 	};
 
 public:
-	BasicTrie(Table& table, bool texOutput = false);
+	BasicTrie(Table& table);
 
 	uint32_t route(uint32_t);
 	void routeBatch(uint32_t* in, uint32_t* out, int count);

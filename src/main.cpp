@@ -17,7 +17,6 @@
 #include "naive.hpp"
 //#include "dxr.hpp"
 #include "basicTrie.hpp"
-#include "lpm.hpp"
 
 #define CHALLENGE_VERSION 1
 
@@ -37,10 +36,11 @@ struct challenge_entry {
 
 void print_usage(string name){
 	cout << "Usage: " << name << endl;
-	cout << "\t --dump-fib <rib-file>" << endl;
-	cout << "\t --dump-challenge <fib-file> <challenge-file>" << endl;
-	cout << "\t --run-challenge <fib-file> <challenge-file>" << endl;
-	cout << "\t --convert-challenge <old-file> <new-file>" << endl;
+	cout << "\t --algo <name>\t\t\t\t valid: Naive, BasicTrie (default: BasicTrie)" << endl;
+	cout << "\t --dump-fib <rib>" << endl;
+	cout << "\t --dump-challenge <fib> <challenge>" << endl;
+	cout << "\t --run-challenge <fib> <challenge>" << endl;
+	cout << "\t --convert-challenge <old> <new>" << endl;
 };
 
 void dump_challenge(Table& table, string filename){
@@ -66,6 +66,7 @@ void dump_challenge(Table& table, string filename){
 	challenge_file.close();
 };
 
+template <typename LPM>
 void run_challenge(Table& table, string challenge_filename){
 	// read the challenge file
 	int fd = open(challenge_filename.c_str(), 0);
@@ -98,18 +99,11 @@ void run_challenge(Table& table, string challenge_filename){
 	int failed = 0;
 	int success = 0;
 
-	//DXR lpm(table);
-	//Naive lpm(table);
-	LPM* lpm = new BasicTrie(table);
+	LPM lpm(table);
 
-	//lpm.print_expansion();
-	//lpm.print_tables();
 	clock_t start = clock();
-
-#if 1
-	// No batching
 	for(unsigned int i=0; i<header.num_entries; i++){
-		uint32_t res = lpm->route(entries[i].addr);
+		uint32_t res = lpm.route(entries[i].addr);
 		if(res != entries[i].next_hop){
 			cout << "Failed IP: " << ip_to_str(entries[i].addr) << endl;
 			cout << "Expected : " << ip_to_str(entries[i].next_hop) << endl;
@@ -119,39 +113,6 @@ void run_challenge(Table& table, string challenge_filename){
 			success++;
 		}
 	}
-#else
-	// Batching
-#define BATCH_SIZE 32
-	uint32_t in[BATCH_SIZE] = {0};
-	uint32_t out[BATCH_SIZE] = {0};
-
-	int num_batches = header.num_entries / BATCH_SIZE;
-
-	for(int i=0; i<num_batches; i++){
-		// Copy input
-		for(int j=0; j<BATCH_SIZE; j++){
-			in[j] = entries[i*BATCH_SIZE + j].addr;
-		}
-
-		// Do lookup
-		lpm.routeBatch(in, out, BATCH_SIZE);
-
-		// Check the result
-		for(int j=0; j<BATCH_SIZE; j++){
-			if(out[j] == entries[i*BATCH_SIZE + j].next_hop){
-				success++;
-			} else {
-				//cout << "Failed IP: " << ip_to_str(in[j]) << endl;
-				cout << "Failed IP: " << ip_to_str(entries[i*num_batches + j].addr) << endl;
-				cout << "Expected : " << ip_to_str(entries[i*num_batches + j].next_hop) << endl;
-				cout << "Got      : " << ip_to_str(out[j]) << endl << endl;
-				failed++;
-			}
-		}
-	}
-
-#endif
-
 	clock_t end = clock();
 
 	float seconds = (1.0*(end-start)) / CLOCKS_PER_SEC;
@@ -219,30 +180,50 @@ void convert_challenge(string old_file, string new_file){
 
 int main(int argc, char** argv){
 	string challenge_filename = "";
-	enum {DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode;
+	enum {INVALID_MODE, DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode
+		= INVALID_MODE;
+	enum {INVALID_ALGO, NAIVE, BASICTRIE} algo = INVALID_ALGO;
 
 	if(argc < 3){
 		print_usage(string(argv[0]));
 		return 0;
 	}
 
-	if(strcmp(argv[1], "--dump-fib") == 0){
-		mode = DUMP_FIB;
-	} else if(strcmp(argv[1], "--dump-challenge") == 0){
-		mode = DUMP_CHALLENGE;
-		challenge_filename = string(argv[3]);
-	} else if(strcmp(argv[1], "--run-challenge") == 0){
-		mode = RUN_CHALLENGE;
-		challenge_filename = string(argv[3]);
-	} else if(strcmp(argv[1], "--convert-challenge") == 0){
-		mode = CONVERT_CHALLENGE;
-		challenge_filename = string(argv[3]);
-	} else {
-		print_usage(string(argv[0]));
-		return 0;
+	int cmd_pos = 1;
+	string filename;
+
+	while(cmd_pos < argc){
+		if(strcmp(argv[cmd_pos], "--algo") == 0){
+			if(strcmp(argv[cmd_pos+1], "Naive") == 0)
+				algo = NAIVE;
+			else if (strcmp(argv[cmd_pos+1], "BasicTrie") == 0)
+				algo = BASICTRIE;
+			cmd_pos += 2;
+		} else if(strcmp(argv[cmd_pos], "--dump-fib") == 0){
+			mode = DUMP_FIB;
+			filename = argv[cmd_pos+1];
+			cmd_pos += 2;
+		} else if(strcmp(argv[cmd_pos], "--dump-challenge") == 0){
+			mode = DUMP_CHALLENGE;
+			filename = argv[cmd_pos+1];
+			challenge_filename = string(argv[cmd_pos+2]);
+			cmd_pos += 3;
+		} else if(strcmp(argv[cmd_pos], "--run-challenge") == 0){
+			mode = RUN_CHALLENGE;
+			filename = argv[cmd_pos+1];
+			challenge_filename = string(argv[cmd_pos+2]);
+			cmd_pos += 3;
+		} else if(strcmp(argv[cmd_pos], "--convert-challenge") == 0){
+			mode = CONVERT_CHALLENGE;
+			filename = argv[cmd_pos+1];
+			challenge_filename = string(argv[cmd_pos+2]);
+			cmd_pos += 3;
+		} else {
+			print_usage(string(argv[0]));
+			return 0;
+		}
 	}
 
-	string filename(argv[2]);
 	Table table(filename);
 
 	switch(mode){
@@ -254,10 +235,23 @@ int main(int argc, char** argv){
 			dump_challenge(table, challenge_filename);
 		break;
 		case RUN_CHALLENGE:
-			run_challenge(table, challenge_filename);
+			switch(algo){
+				case NAIVE:
+					run_challenge<Naive>(table, challenge_filename);
+				break;
+				case BASICTRIE:
+					run_challenge<BasicTrie>(table, challenge_filename);
+				break;
+				default:
+					run_challenge<BasicTrie>(table, challenge_filename);
+				break;
+			}
 		break;
 		case CONVERT_CHALLENGE:
 			convert_challenge(filename, challenge_filename);
+		break;
+		default:
+			print_usage(string(argv[0]));
 		break;
 	}
 
