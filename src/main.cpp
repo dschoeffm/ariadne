@@ -86,7 +86,7 @@ void run_challenge(Table& table, string challenge_filename){
 			NULL,
 			header.num_entries * sizeof(challenge_entry) + sizeof(challenge_header),
 			PROT_READ,
-			MAP_PRIVATE,
+			MAP_PRIVATE | MAP_POPULATE,
 			fd,
 			0);
 
@@ -103,15 +103,17 @@ void run_challenge(Table& table, string challenge_filename){
 	LPM lpm(table);
 
 	clock_t start = clock();
-	for(unsigned int i=0; i<header.num_entries; i++){
-		uint32_t res = lpm.route(entries[i].addr);
-		if(unlikely(res != entries[i].next_hop)){
-			cout << "Failed IP: " << ip_to_str(entries[i].addr) << endl;
-			cout << "Expected : " << ip_to_str(entries[i].next_hop) << endl;
-			cout << "Got      : " << ip_to_str(res) << endl << endl;
-			failed++;
-		} else {
-			success++;
+	for(int reps=0; reps<10; reps++){
+		for(unsigned int i=0; i<header.num_entries; i++){
+			uint32_t res = lpm.route(entries[i].addr);
+			if(unlikely(res != entries[i].next_hop)){
+				cout << "Failed IP: " << ip_to_str(entries[i].addr) << endl;
+				cout << "Expected : " << ip_to_str(entries[i].next_hop) << endl;
+				cout << "Got      : " << ip_to_str(res) << endl << endl;
+				failed++;
+			} else {
+				success++;
+			}
 		}
 	}
 	clock_t end = clock();
