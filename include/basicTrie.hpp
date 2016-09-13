@@ -2,8 +2,9 @@
 #define BASICTRIE_HPP
 
 #include "table.hpp"
+#include "lpm.hpp"
 
-class BasicTrie {
+class BasicTrie : public LPM {
 private:
 
 	class Internal;
@@ -31,8 +32,6 @@ private:
 
 	Internal* root;
 
-	Table& table;
-
 	void buildTrie();
 
 	inline uint32_t extractBit(uint32_t addr, int pos) {
@@ -42,7 +41,7 @@ private:
 	};
 
 public:
-	BasicTrie(Table& table);
+	BasicTrie(Table& table, bool texOutput = false);
 
 	uint32_t route(uint32_t);
 	void routeBatch(uint32_t* in, uint32_t* out, int count);

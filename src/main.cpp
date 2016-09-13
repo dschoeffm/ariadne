@@ -17,6 +17,7 @@
 #include "naive.hpp"
 //#include "dxr.hpp"
 #include "basicTrie.hpp"
+#include "lpm.hpp"
 
 #define CHALLENGE_VERSION 1
 
@@ -99,7 +100,7 @@ void run_challenge(Table& table, string challenge_filename){
 
 	//DXR lpm(table);
 	//Naive lpm(table);
-	BasicTrie lpm(table);
+	LPM* lpm = new BasicTrie(table);
 
 	//lpm.print_expansion();
 	//lpm.print_tables();
@@ -108,7 +109,7 @@ void run_challenge(Table& table, string challenge_filename){
 #if 1
 	// No batching
 	for(unsigned int i=0; i<header.num_entries; i++){
-		uint32_t res = lpm.route(entries[i].addr);
+		uint32_t res = lpm->route(entries[i].addr);
 		if(res != entries[i].next_hop){
 			cout << "Failed IP: " << ip_to_str(entries[i].addr) << endl;
 			cout << "Expected : " << ip_to_str(entries[i].next_hop) << endl;
