@@ -18,6 +18,7 @@
 //#include "dxr.hpp"
 #include "basicTrie.hpp"
 #include "pcTrie.hpp"
+#include "flatroute.hpp"
 
 #define CHALLENGE_VERSION 1
 
@@ -185,7 +186,7 @@ int main(int argc, char** argv){
 	string challenge_filename = "";
 	enum {INVALID_MODE, DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode
 		= INVALID_MODE;
-	enum {INVALID_ALGO, NAIVE, BASICTRIE, PCTRIE} algo = INVALID_ALGO;
+	enum {INVALID_ALGO, NAIVE, BASICTRIE, PCTRIE, FLATROUTE} algo = INVALID_ALGO;
 
 	if(argc < 3){
 		print_usage(string(argv[0]));
@@ -203,6 +204,8 @@ int main(int argc, char** argv){
 				algo = BASICTRIE;
 			else if (strcmp(argv[cmd_pos+1], "PCTrie") == 0)
 				algo = PCTRIE;
+			else if (strcmp(argv[cmd_pos+1], "FlatRoute") == 0)
+				algo = FLATROUTE;
 			cmd_pos += 2;
 		} else if(strcmp(argv[cmd_pos], "--dump-fib") == 0){
 			mode = DUMP_FIB;
@@ -250,9 +253,12 @@ int main(int argc, char** argv){
 				case PCTRIE:
 					run_challenge<PCTrie>(table, challenge_filename);
 				break;
+				case FLATROUTE:
+					run_challenge<FlatRoute>(table, challenge_filename);
+				break;
 
 				default:
-					run_challenge<BasicTrie>(table, challenge_filename);
+					run_challenge<FlatRoute>(table, challenge_filename);
 				break;
 			}
 		break;
