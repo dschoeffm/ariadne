@@ -4,6 +4,7 @@
 #include <cassert>
 #include <limits>
 #include <algorithm>
+#include <iterator>
 
 static uint32_t min_ip(uint32_t ip, uint32_t subnet) {
 	return ip & PREFIX_MASK(subnet);
@@ -20,44 +21,43 @@ static void print_routes( std::vector<std::pair<uint32_t, uint32_t>> routes) {
 	std::cout << std::endl;
 }
 
-static void insert(std::vector<std::pair<uint32_t, uint32_t>>& routes, uint32_t ip, uint32_t subnet, uint32_t next_hop) {
+static auto constexpr DEBUG = false;
+
+static void insert(std::vector<std::pair<uint32_t, uint32_t>>& routes, uint32_t ip, uint32_t subnet, uint32_t nextHop) {
 	uint32_t min = min_ip(ip, subnet);
 	uint32_t max = max_ip(ip, subnet);
-	//std::cout << "inserting " << ip_to_str(ip) << "/" << subnet << " range from " << ip_to_str(min) << " to " << ip_to_str(max) << std::endl;
-	auto it = std::lower_bound(routes.begin(), routes.end(), min, [](std::pair<uint32_t, uint32_t> route, uint32_t ip) {
+	if (DEBUG) std::cout << "inserting " << ip_to_str(ip) << "/" << subnet << " range from " << ip_to_str(min) << " to " << ip_to_str(max) << std::endl;
+	auto it = std::lower_bound(routes.begin(), routes.end(), max, [](std::pair<uint32_t, uint32_t> route, uint32_t ip) {
 		return route.first < ip;
 	});
 	assert(it != routes.end());
-	auto cur = it++;
-	auto next = it;
-	auto tmp = cur;
-	auto prev = --tmp;
-    //std::cout << "insertion position: "	<< ip_to_str(cur->first) << std::endl;
-    //std::cout << "next position: "	<< ip_to_str(next->first) << std::endl;
+	if (DEBUG) std::cout << "insertion position: "	<< ip_to_str(it->first) << std::endl;
 	if (!subnet) {
 		// allow overriding default route
-		cur->second = next_hop;
-		next->second = next_hop;
+		assert(routes.size() == 1);
+		it->second = nextHop;
 		return;
 	}
-	if (cur->first == min) { // insert at beginning of a route
-		// precondition: no duplicates and ordered insert
-		if (min == std::numeric_limits<uint32_t>::max()) { // annoying special case at end of array
-			cur->second = next_hop;
-		} else {
-			cur->first = max + 1;
-			routes.insert(cur, std::make_pair(min, next_hop));
-		}
-	} else if (next->first == max + 1 // insert at end of a route
-			|| next->first == std::numeric_limits<uint32_t>::max()
-			&& max == std::numeric_limits<uint32_t>::max()) { // annoying special case at end of array
-		routes.insert(cur, std::make_pair(min, next_hop));
-	} else { // insert in the middle of a route
-		auto newEntry = routes.insert(cur, std::make_pair(max + 1, prev->second));
-		routes.insert(newEntry, std::make_pair(min, next_hop));
+	// insert at the beginning of a route
+	if ((it == routes.begin() && min == 0)
+	 || (it != routes.begin() && std::prev(it)->first + 1 == min)) {
+		if (DEBUG) std::cout << "beginning" << std::endl;
+		routes.insert(it, std::make_pair(max, nextHop));
+		return;
 	}
-	//print_routes(routes);
-	//std::cout << std::endl;
+	// insert at the end of a route
+	if (it->first == max) {
+		if (DEBUG) std::cout << "end" << std::endl;
+		// min cannot be 0 for an insertion at the end, otherwise we have a duplicate route (or the default)
+		it->first = min - 1;
+		routes.insert(std::next(it), std::make_pair(max, nextHop));
+		return;
+	}
+	if (DEBUG) std::cout << "middle" << std::endl;
+	// insert in the middle of a route
+	auto curNextHop = it->second;
+	auto newIt = routes.insert(it, std::make_pair(max, nextHop));
+	routes.insert(newIt, std::make_pair(min - 1, curNextHop)); // min is obviously not 0 in the middle of a route
 };
 
 static void test(uint32_t ip, FlatRoute* lpm) {
@@ -67,9 +67,8 @@ static void test(uint32_t ip, FlatRoute* lpm) {
 
 FlatRoute::FlatRoute(Table& table) {
 	//std::list<std::pair<uint32_t, uint32_t>> routeList;
-	// somhow faster with vector despite obvious O(n^2) fail
+	// fail insertion is faster than fail search
 	std::vector<std::pair<uint32_t, uint32_t>> routeList;
-	routeList.emplace_back(0, std::numeric_limits<uint32_t>::max());
 	routeList.emplace_back(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max());
 	auto entries = table.get_sorted_entries();
 	uint32_t inserted = 0;
@@ -77,11 +76,14 @@ FlatRoute::FlatRoute(Table& table) {
 		for (auto& e: entries[i]) {
 			insert(routeList, e.first, i, e.second);
 			if ((inserted++ & 0x4FFF) == 0) std::cout << "inserted " << inserted << std::endl;
+			if (DEBUG) print_routes(routeList);
+			if (DEBUG) std::cout << std::endl;
 		}
 	}
 	for (auto& e: routeList) {
 		routes.push_back(e);
 	}
+	std::cout << routes.size() << std::endl;
 	test(0x0A << 24, this);
 	test(0x0B << 24, this);
 	test(0x0A00000A, this);
@@ -90,16 +92,13 @@ FlatRoute::FlatRoute(Table& table) {
 	test(0xFFFFFFFF, this);
 	test(0x00800000, this);
 	test(0x00800008, this);
+	test(0xFFFFFFFE, this);
 };
 
 uint32_t FlatRoute::route(uint32_t addr) {
 	auto it = std::lower_bound(routes.begin(), routes.end(), addr, [](std::pair<uint32_t, uint32_t> route, uint32_t ip) {
 		return route.first < ip;
 	});
-	if (it != routes.begin() && it->first != addr) {
-		return (it - 1)->second;
-	} else {
-		return it->second;
-	}
+	return it->second;
 };
 
