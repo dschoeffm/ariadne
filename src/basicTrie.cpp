@@ -47,20 +47,30 @@ uint32_t BasicTrie::route(uint32_t addr){
 	int pos = 0;
 	uint32_t bit = extractBit(addr, pos);
 	Internal* next = (bit) ? cur->right : cur->left;
+	Leaf* lastLeaf = root->leaf;
 
 	// Traverse downwards
 	while(next){
 		cur = next;
+		if(cur->leaf){
+			lastLeaf = cur->leaf;
+		}
 		bit = extractBit(addr, ++pos);
 		next = (bit) ? cur->right : cur->left;
 	}
 
+	/*
 	// Traverse upwards, until a matching prefix is found
 	while(cur){
 		if(cur->leaf && ((cur->leaf->mask & addr) == cur->leaf->base)){
 			return cur->leaf->next_hop;
 		}
 		cur = cur->parent;
+	}
+	*/
+
+	if(lastLeaf && ((lastLeaf->mask & addr) == lastLeaf->base)){
+			return lastLeaf->next_hop;
 	}
 
 	return 0xffffffff;
