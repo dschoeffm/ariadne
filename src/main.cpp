@@ -14,6 +14,8 @@
 
 #include "util.hpp"
 #include "table.hpp"
+#include "fileTable.hpp"
+#include "linuxTable.hpp"
 #include "naive.hpp"
 //#include "dxr.hpp"
 #include "basicTrie.hpp"
@@ -38,10 +40,11 @@ struct challenge_entry {
 void print_usage(string name){
 	cout << "Usage: " << name << endl;
 	cout << "\t --algo <name>\t\t\t\t valid: Naive, BasicTrie, PCTrie (default: BasicTrie)" << endl;
-	cout << "\t --dump-fib <rib>" << endl;
-	cout << "\t --dump-challenge <fib> <challenge>" << endl;
-	cout << "\t --run-challenge <fib> <challenge>" << endl;
+	cout << "\t --dump-fib\t\t\t\t pass rib filename to --fib-file" << endl;
+	cout << "\t --dump-challenge <challenge>" << endl;
+	cout << "\t --run-challenge <challenge>" << endl;
 	cout << "\t --convert-challenge <old> <new>" << endl;
+	cout << "\t --fib-file <fib>\t\t\t default: kernel routing table" << endl;
 };
 
 void dump_challenge(Table& table, string filename){
@@ -60,7 +63,7 @@ void dump_challenge(Table& table, string filename){
 	for(int i=0; i<NUM_ENTRIES; i++){
 		challenge_entry entry;
 		entry.addr = random();
-		entry.next_hop = lpm.route(entry.addr);
+		entry.next_hop = (lpm.route(entry.addr)).next_hop;
 		challenge_file.write((char*) &entry, sizeof(challenge_entry));
 	}
 
@@ -103,17 +106,15 @@ void run_challenge(Table& table, string challenge_filename){
 	LPM lpm(table);
 
 	clock_t start = clock();
-	for(int reps=0; reps<10; reps++){
-		for(unsigned int i=0; i<header.num_entries; i++){
-			uint32_t res = lpm.route(entries[i].addr);
-			if(unlikely(res != entries[i].next_hop)){
-				cout << "Failed IP: " << ip_to_str(entries[i].addr) << endl;
-				cout << "Expected : " << ip_to_str(entries[i].next_hop) << endl;
-				cout << "Got      : " << ip_to_str(res) << endl << endl;
-				failed++;
-			} else {
-				success++;
-			}
+	for(unsigned int i=0; i<header.num_entries; i++){
+		uint32_t res = (lpm.route(entries[i].addr)).next_hop;
+		if(unlikely(res != entries[i].next_hop)){
+			cout << "Failed IP: " << ip_to_str(entries[i].addr) << endl;
+			cout << "Expected : " << ip_to_str(entries[i].next_hop) << endl;
+			cout << "Got      : " << ip_to_str(res) << endl << endl;
+			failed++;
+		} else {
+			success++;
 		}
 	}
 	clock_t end = clock();
@@ -182,18 +183,19 @@ void convert_challenge(string old_file, string new_file){
 }
 
 int main(int argc, char** argv){
-	string challenge_filename = "";
 	enum {INVALID_MODE, DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode
 		= INVALID_MODE;
 	enum {INVALID_ALGO, NAIVE, BASICTRIE, PCTRIE} algo = INVALID_ALGO;
+	enum {FILETABLE, KERNEL} table_mode = KERNEL;
 
-	if(argc < 3){
+	if(argc < 2){
 		print_usage(string(argv[0]));
 		return 0;
 	}
 
 	int cmd_pos = 1;
 	string filename;
+	string challenge_filename = "";
 
 	while(cmd_pos < argc){
 		if(strcmp(argv[cmd_pos], "--algo") == 0){
@@ -206,53 +208,64 @@ int main(int argc, char** argv){
 			cmd_pos += 2;
 		} else if(strcmp(argv[cmd_pos], "--dump-fib") == 0){
 			mode = DUMP_FIB;
-			filename = argv[cmd_pos+1];
-			cmd_pos += 2;
+			cmd_pos += 1;
 		} else if(strcmp(argv[cmd_pos], "--dump-challenge") == 0){
 			mode = DUMP_CHALLENGE;
-			filename = argv[cmd_pos+1];
-			challenge_filename = string(argv[cmd_pos+2]);
-			cmd_pos += 3;
+			challenge_filename = string(argv[cmd_pos+1]);
+			cmd_pos += 2;
 		} else if(strcmp(argv[cmd_pos], "--run-challenge") == 0){
 			mode = RUN_CHALLENGE;
-			filename = argv[cmd_pos+1];
-			challenge_filename = string(argv[cmd_pos+2]);
-			cmd_pos += 3;
+			challenge_filename = string(argv[cmd_pos+1]);
+			cmd_pos += 2;
 		} else if(strcmp(argv[cmd_pos], "--convert-challenge") == 0){
 			mode = CONVERT_CHALLENGE;
-			filename = argv[cmd_pos+1];
+			filename = string(argv[cmd_pos+1]);
 			challenge_filename = string(argv[cmd_pos+2]);
 			cmd_pos += 3;
+		} else if(strcmp(argv[cmd_pos], "--fib-file") == 0){
+			mode = CONVERT_CHALLENGE;
+			filename = argv[cmd_pos+1];
+			cmd_pos += 2;
 		} else {
 			print_usage(string(argv[0]));
 			return 0;
 		}
 	}
 
-	Table table(filename);
+	Table* table;
+	switch(table_mode){
+		case KERNEL:
+			table = new LinuxTable();
+		break;
+		case FILETABLE:
+			table = new FileTable(filename);
+		break;
+	}
 
 	switch(mode){
 		case DUMP_FIB:
-			table.aggregate();
-			table.print_table();
+			if(table_mode == FILETABLE){
+				static_cast<FileTable*>(table)->aggregate();
+			}
+			table->print_table();
 		break;
 		case DUMP_CHALLENGE:
-			dump_challenge(table, challenge_filename);
+			dump_challenge(*table, challenge_filename);
 		break;
 		case RUN_CHALLENGE:
 			switch(algo){
 				case NAIVE:
-					run_challenge<Naive>(table, challenge_filename);
+					run_challenge<Naive>(*table, challenge_filename);
 				break;
 				case BASICTRIE:
-					run_challenge<BasicTrie>(table, challenge_filename);
+					run_challenge<BasicTrie>(*table, challenge_filename);
 				break;
 				case PCTRIE:
-					run_challenge<PCTrie>(table, challenge_filename);
+					run_challenge<PCTrie>(*table, challenge_filename);
 				break;
 
 				default:
-					run_challenge<BasicTrie>(table, challenge_filename);
+					run_challenge<BasicTrie>(*table, challenge_filename);
 				break;
 			}
 		break;

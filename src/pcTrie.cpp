@@ -20,10 +20,8 @@ PCTrie::Internal::Internal(
 PCTrie::Leaf::Leaf(Internal* parent, uint32_t base) :
 	Node(parent, LEAF, base) {};
 
-void PCTrie::Leaf::pushRoute(uint32_t next_hop, uint32_t prefix_length) {
-	struct leaf_entry entry;
-	entry.next_hop = next_hop;
-	entry.prefix_length = prefix_length;
+void PCTrie::Leaf::pushRoute(const Table::route& route) {
+	struct leafEntry entry(route);
 	entries.push_back(entry);
 	sort(entries.begin(), entries.end());
 };
@@ -39,16 +37,16 @@ bool PCTrie::Leaf::hasMoreGeneralRoute(uint32_t prefix_length) {
 
 void PCTrie::buildTrie() {
 	// Build trie
-	vector<map<uint32_t,uint32_t>> tbl = table.get_sorted_entries();
+	const vector<vector<Table::route>>& tbl = table.getSortedRoutes();
 	for(int len=0; len<=32; len++){
-		for(auto& e : tbl[len]){
+		for(auto& route : tbl[len]){
 			// Is the trie empty?
 			if(root == NULL){
 				// Place leaf as root
-				root = new Leaf(NULL, e.first);
+				root = new Leaf(NULL, route.base);
 
 				// Push route into leaf
-				static_cast<Leaf*>(root)->pushRoute(e.second, len);
+				static_cast<Leaf*>(root)->pushRoute(route);
 				continue;
 			}
 
@@ -59,12 +57,12 @@ void PCTrie::buildTrie() {
 				uint32_t mask = PREFIX_MASK(cur_int->splitPos);
 
 				// Does the prefix still match?
-				if(cur_int->base ^ (e.first & mask)){
+				if(cur_int->base ^ (route.base & mask)){
 					// We found a mismatch
 					break;
 				} else {
 					// Traverse further down
-					if(extractBit(e.first, cur_int->splitPos)){
+					if(extractBit(route.base, cur_int->splitPos)){
 						cur = cur_int->right;
 					} else {
 						cur = cur_int->left;
@@ -74,9 +72,9 @@ void PCTrie::buildTrie() {
 
 			if(cur->type == LEAF){
 				// Check if the base matches
-				if(cur->base == e.first){
+				if(cur->base == route.base){
 					//Push route to leaf
-					static_cast<Leaf*>(cur)->pushRoute(e.second, len);
+					static_cast<Leaf*>(cur)->pushRoute(route);
 					continue;
 				}
 			}
@@ -85,9 +83,9 @@ void PCTrie::buildTrie() {
 
 			if(cur->type == INTERNAL){
 				Internal* cur_int = static_cast<Internal*>(cur);
-				diff = cur->base ^ (e.first & PREFIX_MASK(cur_int->splitPos));
+				diff = cur->base ^ (route.base & PREFIX_MASK(cur_int->splitPos));
 			} else {
-				diff = cur->base ^ e.first;
+				diff = cur->base ^ route.base;
 			}
 
 			// Where is the new split position?
@@ -100,15 +98,15 @@ void PCTrie::buildTrie() {
 			}
 			uint32_t mask = PREFIX_MASK(pos);
 
-			uint32_t new_base = e.first & mask; // This prefix is still shared
+			uint32_t new_base = route.base & mask; // This prefix is still shared
 			Internal* new_int = new Internal(cur->parent, new_base, NULL, NULL, NULL, pos);
-			Leaf* new_leaf = new Leaf(new_int, e.first);
+			Leaf* new_leaf = new Leaf(new_int, route.base);
 
 			// Push route to new leaf
-			new_leaf->pushRoute(e.second, len);
+			new_leaf->pushRoute(route);
 
 			// Which child is left, which is right
-			if(extractBit(e.first, pos)){
+			if(extractBit(route.base, pos)){
 				// New leaf is right
 				new_int->right = new_leaf;
 				new_int->left = (cur) ? cur : root;
@@ -206,7 +204,7 @@ unsigned int PCTrie::getSize(){
 
 	unsigned int size_int = sizeof(Internal);
 	unsigned int size_leaf = sizeof(Leaf);
-	unsigned int size_leaf_entry = sizeof(Leaf::leaf_entry);
+	unsigned int size_leafEntry = sizeof(Leaf::leafEntry);
 
 #if 0
 	cerr << "Number of internal nodes: " << num_int
@@ -220,15 +218,15 @@ unsigned int PCTrie::getSize(){
 		<< " size all: " << (size_leaf_entry * num_entries) / 1024 << " KiB" << endl;
 #endif
 
-	return size_int * num_int + size_leaf * num_leaf + size_leaf_entry  * num_entries;
+	return size_int * num_int + size_leaf * num_leaf + size_leafEntry  * num_entries;
 };
 
-uint32_t PCTrie::route(uint32_t addr){
+const Table::route& PCTrie::route(uint32_t addr){
 	Node* cur = root;
 
 	// Is the trie populated at all?
 	if(!root){
-		return 0xffffffff;
+		return Table::invalidRoute;
 	}
 
 	// Traverse down
@@ -248,7 +246,7 @@ uint32_t PCTrie::route(uint32_t addr){
 	for(auto& entry : cur_leaf->entries){
 		uint32_t mask = PREFIX_MASK(entry.prefix_length);
 		if((addr & mask) == cur_leaf->base){
-			return entry.next_hop;
+			return entry;
 		}
 	}
 	cur = cur->parent;
@@ -263,14 +261,14 @@ uint32_t PCTrie::route(uint32_t addr){
 			for(auto& entry : cur_leaf->entries){
 				uint32_t mask = PREFIX_MASK(entry.prefix_length);
 				if((addr & mask) == cur_leaf->base){
-					return entry.next_hop;
+					return entry;
 				}
 			}
 		}
 		cur = cur->parent;
 	}
 
-	return 0xffffffff;
+	return Table::invalidRoute;
 };
 
 string PCTrie::getQtreeSnapshot(){

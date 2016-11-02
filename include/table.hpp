@@ -2,34 +2,46 @@
 #define TABLE_HPP
 
 #include <iostream>
-#include <string>
 #include <vector>
-#include <list>
-#include <map>
-
-#include <fstream>
-#include <regex>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <limits>
 
 #include "util.hpp"
 
 class Table {
 public:
-	struct entry {
-		uint32_t addr;
+	struct route {
+		uint32_t base;
 		uint32_t next_hop;
+		uint32_t prefix_length;
+		uint32_t interface;
+
+		route() :
+			base(std::numeric_limits<uint32_t>::max()),
+			next_hop(std::numeric_limits<uint32_t>::max()),
+			prefix_length(std::numeric_limits<uint32_t>::max()),
+			interface(std::numeric_limits<uint32_t>::max()) {};
+
+		route(const route& route) :
+			base(route.base),
+			next_hop(route.next_hop),
+			prefix_length(route.prefix_length),
+			interface(route.interface) {};
+
+		operator bool(){
+			if(base == std::numeric_limits<uint32_t>::max()){
+				return false;
+			} else {
+				return true;
+			}
+		};
+
 	};
-private:
-	std::vector<std::map<uint32_t, uint32_t>> entries;
+
+	static const route invalidRoute;
 
 public:
-	Table(std::string filename);
-
-	void aggregate();
 	void print_table();
-	const std::vector<std::map<uint32_t, uint32_t>>& get_sorted_entries();
+	virtual const std::vector<std::vector<route>>& getSortedRoutes() = 0;
 };
 
-#endif /* TABLE_HPP */
+#endif /* FILETABLE_HPP */

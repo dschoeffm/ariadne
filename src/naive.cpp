@@ -1,6 +1,6 @@
 #include "naive.hpp"
 
-Naive::Naive(Table& table) : entries(table.get_sorted_entries()) {
+Naive::Naive(Table& table) : entries(table.getSortedRoutes()) {
 	uint32_t mask = 0;
 	for(int i=0; i<33; i++){
 		masks[i] = mask;
@@ -9,14 +9,14 @@ Naive::Naive(Table& table) : entries(table.get_sorted_entries()) {
 	}
 };
 
-uint32_t Naive::route(uint32_t addr) {
+const Table::route& Naive::route(uint32_t addr) {
 	for(int len=32; len>=0; len--){
-		for(auto& e : entries[len]){
-			if(e.first == (addr & masks[len])){
-				return e.second;
+		for(auto& route : entries[len]){
+			if(route.base == (addr & masks[len])){
+				return route;
 			}
 		}
 	};
-	return 0xffffffff;
+	return Table::invalidRoute;
 };
 

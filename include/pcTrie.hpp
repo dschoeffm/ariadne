@@ -5,6 +5,8 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
+#include <algorithm>
+#include <functional>
 
 #include "table.hpp"
 
@@ -50,19 +52,19 @@ private:
 
 	class Leaf : public Node {
 	public:
-		struct leaf_entry {
-			uint32_t next_hop;
-			uint32_t prefix_length;
-
-			bool operator < (const leaf_entry& e) const {
+		struct leafEntry : public Table::route {
+			bool operator < (const leafEntry& e) const {
 				return prefix_length > e.prefix_length;
-			}
+			};
+
+			leafEntry() : route() {};
+			leafEntry(const Table::route& route) : Table::route(route) {};
 		};
 
-		std::vector<struct leaf_entry> entries;
+		std::vector<leafEntry> entries;
 
 		Leaf(Internal* parent, uint32_t base);
-		void pushRoute(uint32_t next_hop, uint32_t prefix_length);
+		void pushRoute(const Table::route& route);
 		bool hasMoreGeneralRoute(uint32_t prefix_length);
 	};
 
@@ -86,7 +88,7 @@ public:
 
 	unsigned int getSize();
 
-	uint32_t route(uint32_t);
+	const Table::route& route(uint32_t);
 };
 
 #endif /* PCTRIE_HPP */

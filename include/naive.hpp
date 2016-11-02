@@ -8,13 +8,13 @@
 
 class Naive {
 private:
-	const std::vector<std::map<uint32_t, uint32_t>>& entries;
+	const std::vector<std::vector<Table::route>>& entries;
 	uint32_t masks[33];
 
 public:
 	Naive(Table& table);
 
-	uint32_t route(uint32_t);
+	const Table::route& route(uint32_t addr);
 };
 
 #endif /* NAIVE_HPP */

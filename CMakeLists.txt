@@ -11,6 +11,7 @@ SET(PRJ lpm)
 file(GLOB SOURCES src/*.cpp)
 
 SET(ALL_LIBS
+	-lmnl
 )
 
 ADD_EXECUTABLE(${PRJ} ${SOURCES})
