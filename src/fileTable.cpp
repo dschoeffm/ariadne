@@ -3,7 +3,6 @@
 using namespace std;
 
 FileTable::FileTable(string filename) {
-	entries = make_shared<vector<vector<RoutingTable::route>>>();
 	entries->resize(33);
 
 	ifstream dump;
@@ -47,11 +46,9 @@ FileTable::FileTable(string filename) {
 		route.next_hop = next_hop;
 		route.base = addr;
 		route.prefix_length = len;
-		route.interface = std::numeric_limits<uint32_t>::max();
+		route.interface = std::numeric_limits<uint16_t>::max();
 
 		(*entries)[len].push_back(route);
 	}
-
-	aggregate();
 };
 

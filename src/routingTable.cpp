@@ -42,7 +42,7 @@ void RoutingTable::aggregate() {
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
 				newRoute.prefix_length = len;
-				newRoute.interface = std::numeric_limits<uint32_t>::max();
+				newRoute.interface = std::numeric_limits<uint16_t>::max();
 				counter++;
 			}
 		}
@@ -53,3 +53,26 @@ void RoutingTable::aggregate() {
 #endif
 };
 
+std::shared_ptr<std::vector<RoutingTable::nextHop>> RoutingTable::getNextHopList(){
+	return nextHopList;
+}
+
+void RoutingTable::buildNextHopList(){
+	vector<uint32_t> new_nextHopList;
+	for(auto a : *entries){
+		for(auto r : a){
+			auto it = find(nextHopMapping->begin(), nextHopMapping->end(), r.next_hop);
+			if(it != nextHopMapping->end()){
+				// Next hop is not yet in the list
+				r.index = nextHopMapping->size();
+				nextHop nh;
+				nh.interface = r.interface;
+
+				nextHopList->push_back(nh);
+				nextHopMapping->push_back(r.next_hop);
+			} else {
+				r.index = distance(nextHopMapping->begin(), it);
+			}
+		}
+	}
+}

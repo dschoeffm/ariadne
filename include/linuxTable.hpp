@@ -19,7 +19,7 @@ class LinuxTable : public RoutingTable {
 public:
 	LinuxTable();
 
-	void update();
+	void updateInfo();
 };
 
 #endif /* LINUX_HPP */

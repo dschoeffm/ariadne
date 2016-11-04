@@ -5,6 +5,7 @@
 #include <vector>
 #include <limits>
 #include <memory>
+#include <algorithm>
 
 #include "util.hpp"
 
@@ -14,13 +15,14 @@ public:
 		uint32_t base;
 		uint32_t next_hop;
 		uint32_t prefix_length;
-		uint32_t interface;
+		uint16_t interface;
+		uint16_t index;
 
 		route() :
 			base(std::numeric_limits<uint32_t>::max()),
 			next_hop(std::numeric_limits<uint32_t>::max()),
 			prefix_length(std::numeric_limits<uint32_t>::max()),
-			interface(std::numeric_limits<uint32_t>::max()) {};
+			interface(std::numeric_limits<uint16_t>::max()) {};
 
 		route(const route& route) :
 			base(route.base),
@@ -35,19 +37,38 @@ public:
 				return true;
 			}
 		};
+	};
 
+	struct nextHop {
+		uint8_t mac[6] = {0};
+		uint16_t interface = std::numeric_limits<uint16_t>::max();
 	};
 
 	static const route invalidRoute;
 
 protected:
-	std::shared_ptr<std::vector<std::vector<route>>> entries;
+	std::shared_ptr<std::vector<std::vector<route>>> entries =
+		std::make_shared<std::vector<std::vector<route>>>();
+	std::shared_ptr<std::vector<nextHop>> nextHopList =
+		std::make_shared<std::vector<nextHop>>();
+	std::shared_ptr<std::vector<uint32_t>> nextHopMapping=
+		std::make_shared<std::vector<uint32_t>>();
+	virtual void updateInfo() {};
+
+private:
+	void buildNextHopList();
 	void aggregate();
 
 public:
 	void print_table();
 	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
-	virtual void update() {};
+	std::shared_ptr<std::vector<nextHop>> getNextHopList();
+	std::shared_ptr<std::vector<uint32_t>> getNextHopMapping();
+	void update(){
+		updateInfo();
+		aggregate();
+		buildNextHopList();
+	};
 };
 
 #endif /* ROUTINGTABLE_HPP */
