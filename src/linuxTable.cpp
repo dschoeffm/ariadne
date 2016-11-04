@@ -86,9 +86,6 @@ LinuxTable::LinuxTable(){
 	update();
 };
 
-shared_ptr<vector<vector<RoutingTable::route>>> LinuxTable::getSortedRoutes() {
-	return entries;
-}
 
 void LinuxTable::update(){
 	vector<vector<RoutingTable::route>> new_entries(33);

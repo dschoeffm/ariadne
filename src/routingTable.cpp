@@ -15,3 +15,6 @@ void RoutingTable::print_table(){
 	}
 };
 
+shared_ptr<vector<vector<RoutingTable::route>>> RoutingTable::getSortedRoutes() {
+	return entries;
+};

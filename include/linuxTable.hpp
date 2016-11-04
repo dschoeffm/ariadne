@@ -16,13 +16,9 @@
 #include "routingTable.hpp"
 
 class LinuxTable : public RoutingTable {
-private:
-	std::shared_ptr<std::vector<std::vector<route>>> entries;
-
 public:
 	LinuxTable();
 
-	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
 	void update();
 };
 

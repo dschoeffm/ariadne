@@ -40,9 +40,12 @@ public:
 
 	static const route invalidRoute;
 
+protected:
+	std::shared_ptr<std::vector<std::vector<route>>> entries;
+
 public:
 	void print_table();
-	virtual std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes() = 0;
+	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
 	virtual void update() {};
 };
 

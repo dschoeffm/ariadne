@@ -83,6 +83,3 @@ void FileTable::aggregate() {
 	cerr << "aggregated networks: " << counter << endl;
 };
 
-shared_ptr<vector<vector<RoutingTable::route>>> FileTable::getSortedRoutes() {
-	return entries;
-};
