@@ -22,7 +22,9 @@ shared_ptr<vector<vector<RoutingTable::route>>> RoutingTable::getSortedRoutes() 
 void RoutingTable::aggregate() {
 	int counter = 0;
 	for(int len=30; len > 0; len--){
+#if DEBUG
 		cerr << "aggregating length " << len << endl;
+#endif
 
 		if((*entries)[len].size() < 2){
 			continue;
@@ -46,6 +48,8 @@ void RoutingTable::aggregate() {
 		}
 	}
 
+#if DEBUG
 	cerr << "aggregated networks: " << counter << endl;
+#endif
 };
 
