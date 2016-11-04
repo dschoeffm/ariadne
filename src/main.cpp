@@ -13,7 +13,7 @@
 #include <errno.h>
 
 #include "util.hpp"
-#include "table.hpp"
+#include "routingTable.hpp"
 #include "fileTable.hpp"
 #include "linuxTable.hpp"
 #include "naive.hpp"
@@ -39,7 +39,7 @@ struct challenge_entry {
 
 void print_usage(string name){
 	cout << "Usage: " << name << endl;
-	cout << "\t --algo <name>\t\t\t\t valid: Naive, BasicTrie, PCTrie (default: BasicTrie)" << endl;
+	cout << "\t --algo <name>\t\t\t\t valid: Naive, BasicTrie (default: BasicTrie)" << endl;
 	cout << "\t --dump-fib\t\t\t\t pass rib filename to --fib-file" << endl;
 	cout << "\t --dump-challenge <challenge>" << endl;
 	cout << "\t --run-challenge <challenge>" << endl;
@@ -47,7 +47,7 @@ void print_usage(string name){
 	cout << "\t --fib-file <fib>\t\t\t default: kernel routing table" << endl;
 };
 
-void dump_challenge(Table& table, string filename){
+void dump_challenge(RoutingTable& table, string filename){
 #define NUM_ENTRIES 10000000
 
 	ofstream challenge_file (filename, ios::out | ios::binary);
@@ -71,7 +71,7 @@ void dump_challenge(Table& table, string filename){
 };
 
 template <typename LPM>
-void run_challenge(Table& table, string challenge_filename){
+void run_challenge(RoutingTable& table, string challenge_filename){
 	// read the challenge file
 	int fd = open(challenge_filename.c_str(), 0);
 	challenge_header header;
@@ -185,7 +185,7 @@ void convert_challenge(string old_file, string new_file){
 int main(int argc, char** argv){
 	enum {INVALID_MODE, DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode
 		= INVALID_MODE;
-	enum {INVALID_ALGO, NAIVE, BASICTRIE, PCTRIE} algo = INVALID_ALGO;
+	enum {INVALID_ALGO, NAIVE, BASICTRIE} algo = INVALID_ALGO;
 	enum {FILETABLE, KERNEL} table_mode = KERNEL;
 
 	if(argc < 2){
@@ -203,8 +203,10 @@ int main(int argc, char** argv){
 				algo = NAIVE;
 			else if (strcmp(argv[cmd_pos+1], "BasicTrie") == 0)
 				algo = BASICTRIE;
+#if 0
 			else if (strcmp(argv[cmd_pos+1], "PCTrie") == 0)
 				algo = PCTRIE;
+#endif
 			cmd_pos += 2;
 		} else if(strcmp(argv[cmd_pos], "--dump-fib") == 0){
 			mode = DUMP_FIB;
@@ -223,7 +225,7 @@ int main(int argc, char** argv){
 			challenge_filename = string(argv[cmd_pos+2]);
 			cmd_pos += 3;
 		} else if(strcmp(argv[cmd_pos], "--fib-file") == 0){
-			mode = CONVERT_CHALLENGE;
+			table_mode = FILETABLE;
 			filename = argv[cmd_pos+1];
 			cmd_pos += 2;
 		} else {
@@ -232,7 +234,7 @@ int main(int argc, char** argv){
 		}
 	}
 
-	Table* table;
+	RoutingTable* table;
 	switch(table_mode){
 		case KERNEL:
 			table = new LinuxTable();
@@ -260,10 +262,11 @@ int main(int argc, char** argv){
 				case BASICTRIE:
 					run_challenge<BasicTrie>(*table, challenge_filename);
 				break;
+#if 0
 				case PCTRIE:
 					run_challenge<PCTrie>(*table, challenge_filename);
 				break;
-
+#endif
 				default:
 					run_challenge<BasicTrie>(*table, challenge_filename);
 				break;

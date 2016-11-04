@@ -4,10 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <memory>
 
 #include "util.hpp"
 
-class Table {
+class RoutingTable {
 public:
 	struct route {
 		uint32_t base;
@@ -41,7 +42,7 @@ public:
 
 public:
 	void print_table();
-	virtual const std::vector<std::vector<route>>& getSortedRoutes() = 0;
+	virtual std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes() = 0;
 };
 
-#endif /* FILETABLE_HPP */
+#endif /* ROUTINGTABLE_HPP */

@@ -11,9 +11,9 @@ void BasicTrie::buildTrie() {
 	root = new Internal(NULL, NULL, NULL);
 
 	// Build trie
-	vector<vector<Table::route>> tbl = table.getSortedRoutes();
+	shared_ptr<vector<vector<RoutingTable::route>>> tbl = table.getSortedRoutes();
 	for(int len=0; len<=32; len++){
-		for(auto& route : tbl[len]){
+		for(auto& route : (*tbl)[len]){
 			// The Internal node is always at level len
 			Internal* cur = root;
 			for(int level=0; level<len; level++){
@@ -33,17 +33,17 @@ void BasicTrie::buildTrie() {
 
 };
 
-BasicTrie::BasicTrie(Table& table) : table(table) {
+BasicTrie::BasicTrie(RoutingTable& table) : table(table) {
 	buildTrie();
 };
 
-const Table::route& BasicTrie::route(uint32_t addr){
+const RoutingTable::route& BasicTrie::route(uint32_t addr){
 	// Bootstrap first iteration
 	Internal* cur = root;
 	int pos = 0;
 	uint32_t bit = extractBit(addr, pos);
 	Internal* next = (bit) ? cur->right : cur->left;
-	Table::route* lastLeaf = &root->leaf;
+	RoutingTable::route* lastLeaf = &root->leaf;
 
 	// Traverse downwards
 	while(next){
@@ -71,5 +71,5 @@ const Table::route& BasicTrie::route(uint32_t addr){
 
 
 
-	return Table::invalidRoute;
+	return RoutingTable::invalidRoute;
 };

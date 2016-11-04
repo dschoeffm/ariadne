@@ -2,8 +2,9 @@
 #define BASICTRIE_HPP
 
 #include <limits>
+#include <memory>
 
-#include "table.hpp"
+#include "routingTable.hpp"
 #include "util.hpp"
 
 class BasicTrie {
@@ -16,20 +17,20 @@ private:
 		Internal* left;
 		Internal* right;
 		Internal* parent;
-		Table::route leaf;
+		RoutingTable::route leaf;
 
 		Internal(Internal* left, Internal* right, Internal* parent);
 	};
 
 	Internal* root;
-	Table& table;
+	RoutingTable& table;
 
 	void buildTrie();
 
 public:
-	BasicTrie(Table& table);
+	BasicTrie(RoutingTable& table);
 
-	const Table::route& route(uint32_t);
+	const RoutingTable::route& route(uint32_t);
 };
 
 #endif /* BASICTRIE_HPP */

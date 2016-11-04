@@ -46,13 +46,14 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 	struct rtmsg *rm = static_cast<struct rtmsg*>(mnl_nlmsg_get_payload(nlh));
 	mnl_attr_parse(nlh, sizeof(*rm), data_ipv4_attr_cb, tb);
 
-	vector<vector<Table::route>>* routes = static_cast<vector<vector<Table::route>>*>(data);
+	vector<vector<RoutingTable::route>>* routes =
+		static_cast<vector<vector<RoutingTable::route>>*>(data);
 
 	if(rm->rtm_type != 1){
 		return MNL_CB_OK;
 	}
 
-	Table::route new_route;
+	RoutingTable::route new_route;
 	new_route.prefix_length = rm->rtm_dst_len;
 
 	if (tb[RTA_DST]) {
@@ -81,13 +82,12 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 }
 
 LinuxTable::LinuxTable(){
-	entries = new(vector<vector<Table::route>>);
+	entries = make_shared<vector<vector<RoutingTable::route>>>();
 };
 
-const vector<vector<Table::route>>& LinuxTable::getSortedRoutes() {
+shared_ptr<vector<vector<RoutingTable::route>>> LinuxTable::getSortedRoutes() {
 
-	delete(entries);
-	entries = new(vector<vector<Table::route>>);
+	entries->clear();
 	entries->resize(33);
 
 	struct mnl_socket *nl;
@@ -124,7 +124,7 @@ const vector<vector<Table::route>>& LinuxTable::getSortedRoutes() {
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_new, static_cast<void*>(entries));
+		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_new, static_cast<void*>(entries.get()));
 		if (ret <= MNL_CB_STOP)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -136,5 +136,5 @@ const vector<vector<Table::route>>& LinuxTable::getSortedRoutes() {
 
 	mnl_socket_close(nl);
 
-	return *entries;
+	return entries;
 }

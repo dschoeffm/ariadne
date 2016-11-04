@@ -1,3 +1,4 @@
+#if 0
 #include "pcTrie.hpp"
 
 using namespace std;
@@ -371,4 +372,4 @@ string PCTrie::getQtree(){
 string PCTrie::getQtreeHistory(){
 	return finalizeQtree(qtree_prev.str());
 }
-
+#endif

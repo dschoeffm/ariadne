@@ -14,17 +14,17 @@
 #include <arpa/inet.h>
 
 #include "util.hpp"
-#include "table.hpp"
+#include "routingTable.hpp"
 
-class FileTable : public Table {
+class FileTable : public RoutingTable {
 private:
-	std::vector<std::vector<Table::route>> entries;
+	std::shared_ptr<std::vector<std::vector<RoutingTable::route>>> entries;
 
 public:
 	FileTable(std::string filename);
 
 	void aggregate();
-	const std::vector<std::vector<route>>& getSortedRoutes();
+	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
 };
 
 #endif /* FILETABLE_HPP */

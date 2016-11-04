@@ -1,3 +1,5 @@
+#if 0
+
 #ifndef PCTRIE_HPP
 #define PCTRIE_HPP
 
@@ -92,3 +94,4 @@ public:
 };
 
 #endif /* PCTRIE_HPP */
+#endif

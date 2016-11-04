@@ -13,16 +13,16 @@
 #include <linux/rtnetlink.h>
 
 #include "util.hpp"
-#include "table.hpp"
+#include "routingTable.hpp"
 
-class LinuxTable : public Table {
+class LinuxTable : public RoutingTable {
 private:
-	std::vector<std::vector<route>>* entries;
+	std::shared_ptr<std::vector<std::vector<route>>> entries;
 
 public:
 	LinuxTable();
 
-	const std::vector<std::vector<route>>& getSortedRoutes();
+	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
 };
 
 #endif /* LINUX_HPP */

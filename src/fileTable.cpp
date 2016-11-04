@@ -3,7 +3,8 @@
 using namespace std;
 
 FileTable::FileTable(string filename) {
-	entries.resize(33);
+	entries = make_shared<vector<vector<RoutingTable::route>>>();
+	entries->resize(33);
 
 	ifstream dump;
 	dump.open(filename);
@@ -42,13 +43,13 @@ FileTable::FileTable(string filename) {
 		inet_aton(m[3].str().c_str(), &in_addr);
 		next_hop = ntohl(in_addr.s_addr);
 
-		Table::route route;
+		RoutingTable::route route;
 		route.next_hop = next_hop;
 		route.base = addr;
 		route.prefix_length = len;
 		route.interface = std::numeric_limits<uint32_t>::max();
 
-		entries[len].push_back(route);
+		(*entries)[len].push_back(route);
 	}
 };
 
@@ -56,14 +57,19 @@ void FileTable::aggregate() {
 	int counter = 0;
 	for(int len=30; len > 0; len--){
 		cerr << "aggregating length " << len << endl;
-		for(unsigned int i=0; i < entries[len].size()-1; i++){
 
-			route& first = entries[len][i];
-			route& second = entries[len][i+1];
+		if((*entries)[len].size() < 2){
+			continue;
+		}
+
+		for(unsigned int i=0; i < (*entries)[len].size()-1; i++){
+
+			route& first = (*entries)[len][i];
+			route& second = (*entries)[len][i+1];
 
 			if(((first.base ^ second.base) == ((uint32_t) 1 << (32-len)))
 				&& (first.next_hop == second.next_hop)){
-				entries[len].erase(entries[len].begin()+i, entries[len].begin()+i+1);
+				(*entries)[len].erase((*entries)[len].begin()+i, (*entries)[len].begin()+i+1);
 				route newRoute;
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
@@ -77,6 +83,6 @@ void FileTable::aggregate() {
 	cerr << "aggregated networks: " << counter << endl;
 };
 
-const vector<vector<Table::route>>& FileTable::getSortedRoutes() {
+shared_ptr<vector<vector<RoutingTable::route>>> FileTable::getSortedRoutes() {
 	return entries;
 };

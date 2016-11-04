@@ -4,17 +4,17 @@
 #include <vector>
 #include <map>
 
-#include "table.hpp"
+#include "routingTable.hpp"
 
 class Naive {
 private:
-	const std::vector<std::vector<Table::route>>& entries;
+	std::shared_ptr<std::vector<std::vector<RoutingTable::route>>> entries;
 	uint32_t masks[33];
 
 public:
-	Naive(Table& table);
+	Naive(RoutingTable& table);
 
-	const Table::route& route(uint32_t addr);
+	const RoutingTable::route& route(uint32_t addr);
 };
 
 #endif /* NAIVE_HPP */
