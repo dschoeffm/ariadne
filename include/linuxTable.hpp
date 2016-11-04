@@ -23,6 +23,7 @@ public:
 	LinuxTable();
 
 	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
+	void update();
 };
 
 #endif /* LINUX_HPP */

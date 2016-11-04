@@ -83,12 +83,15 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 
 LinuxTable::LinuxTable(){
 	entries = make_shared<vector<vector<RoutingTable::route>>>();
+	update();
 };
 
 shared_ptr<vector<vector<RoutingTable::route>>> LinuxTable::getSortedRoutes() {
+	return entries;
+}
 
-	entries->clear();
-	entries->resize(33);
+void LinuxTable::update(){
+	vector<vector<RoutingTable::route>> new_entries(33);
 
 	struct mnl_socket *nl;
 	char buf[MNL_SOCKET_BUFFER_SIZE];
@@ -124,7 +127,7 @@ shared_ptr<vector<vector<RoutingTable::route>>> LinuxTable::getSortedRoutes() {
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_new, static_cast<void*>(entries.get()));
+		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_new, static_cast<void*>(&new_entries));
 		if (ret <= MNL_CB_STOP)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -136,5 +139,5 @@ shared_ptr<vector<vector<RoutingTable::route>>> LinuxTable::getSortedRoutes() {
 
 	mnl_socket_close(nl);
 
-	return entries;
+	swap(new_entries, *entries);
 }

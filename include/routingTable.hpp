@@ -43,6 +43,7 @@ public:
 public:
 	void print_table();
 	virtual std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes() = 0;
+	virtual void update() {};
 };
 
 #endif /* ROUTINGTABLE_HPP */
