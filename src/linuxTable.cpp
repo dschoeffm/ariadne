@@ -137,4 +137,6 @@ void LinuxTable::update(){
 	mnl_socket_close(nl);
 
 	swap(new_entries, *entries);
+
+	aggregate();
 }

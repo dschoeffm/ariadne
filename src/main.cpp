@@ -246,9 +246,6 @@ int main(int argc, char** argv){
 
 	switch(mode){
 		case DUMP_FIB:
-			if(table_mode == FILETABLE){
-				static_cast<FileTable*>(table)->aggregate();
-			}
 			table->print_table();
 		break;
 		case DUMP_CHALLENGE:

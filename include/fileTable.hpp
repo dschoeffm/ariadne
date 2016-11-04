@@ -19,8 +19,6 @@
 class FileTable : public RoutingTable {
 public:
 	FileTable(std::string filename);
-
-	void aggregate();
 };
 
 #endif /* FILETABLE_HPP */

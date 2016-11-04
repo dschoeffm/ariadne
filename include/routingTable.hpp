@@ -42,6 +42,7 @@ public:
 
 protected:
 	std::shared_ptr<std::vector<std::vector<route>>> entries;
+	void aggregate();
 
 public:
 	void print_table();
