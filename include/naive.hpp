@@ -14,7 +14,7 @@ private:
 public:
 	Naive(RoutingTable& table);
 
-	const RoutingTable::route& route(uint32_t addr);
+	uint16_t route(uint32_t addr) const;
 };
 
 #endif /* NAIVE_HPP */

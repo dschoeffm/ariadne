@@ -66,7 +66,7 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 	if (tb[RTA_OIF]) {
 		new_route.interface = mnl_attr_get_u32(tb[RTA_OIF]);
 	} else {
-		new_route.interface = numeric_limits<uint16_t>::max();
+		new_route.interface = uint16_t_max;
 	}
 
 	if (tb[RTA_GATEWAY]) {

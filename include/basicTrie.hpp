@@ -17,7 +17,7 @@ private:
 		Internal* left;
 		Internal* right;
 		Internal* parent;
-		RoutingTable::route leaf;
+		uint16_t leaf;
 
 		Internal(Internal* left, Internal* right, Internal* parent);
 	};
@@ -30,7 +30,7 @@ private:
 public:
 	BasicTrie(RoutingTable& table);
 
-	const RoutingTable::route& route(uint32_t);
+	uint16_t route(uint32_t) const;
 };
 
 #endif /* BASICTRIE_HPP */

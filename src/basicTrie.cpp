@@ -27,7 +27,7 @@ void BasicTrie::buildTrie() {
 			}
 
 			// cur is at the position of the Leaf
-			cur->leaf = route;
+			cur->leaf = route.index;
 		}
 	}
 
@@ -37,19 +37,19 @@ BasicTrie::BasicTrie(RoutingTable& table) : table(table) {
 	buildTrie();
 };
 
-const RoutingTable::route& BasicTrie::route(uint32_t addr){
+	uint16_t BasicTrie::route(uint32_t addr) const {
 	// Bootstrap first iteration
 	Internal* cur = root;
 	int pos = 0;
 	uint32_t bit = extractBit(addr, pos);
 	Internal* next = (bit) ? cur->right : cur->left;
-	RoutingTable::route* lastLeaf = &root->leaf;
+	uint16_t lastLeaf = root->leaf;
 
 	// Traverse downwards
 	while(next){
 		cur = next;
-		if(cur->leaf){
-			lastLeaf = &cur->leaf;
+		if(cur->leaf != uint16_t_max){
+			lastLeaf = cur->leaf;
 		}
 		bit = extractBit(addr, ++pos);
 		next = (bit) ? cur->right : cur->left;
@@ -65,11 +65,5 @@ const RoutingTable::route& BasicTrie::route(uint32_t addr){
 	}
 	*/
 
-	if(lastLeaf && ((PREFIX_MASK(lastLeaf->prefix_length) & addr) == lastLeaf->base)){
-			return *lastLeaf;
-	}
-
-
-
-	return RoutingTable::invalidRoute;
+	return lastLeaf;
 };

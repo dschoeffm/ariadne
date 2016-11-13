@@ -41,12 +41,13 @@ void print_usage(string name){
 	cout << "Usage: " << name << endl;
 	cout << "\t --algo <name>\t\t\t\t valid: Naive, BasicTrie (default: BasicTrie)" << endl;
 	cout << "\t --dump-fib\t\t\t\t pass rib filename to --fib-file" << endl;
-	cout << "\t --dump-challenge <challenge>" << endl;
-	cout << "\t --run-challenge <challenge>" << endl;
-	cout << "\t --convert-challenge <old> <new>" << endl;
+	//cout << "\t --dump-challenge <challenge>" << endl;
+	//cout << "\t --run-challenge <challenge>" << endl;
+	//cout << "\t --convert-challenge <old> <new>" << endl;
 	cout << "\t --fib-file <fib>\t\t\t default: kernel routing table" << endl;
 };
 
+#if 0
 void dump_challenge(RoutingTable& table, string filename){
 #define NUM_ENTRIES 10000000
 
@@ -181,6 +182,7 @@ void convert_challenge(string old_file, string new_file){
 	challenge_file.close();
 
 }
+#endif
 
 int main(int argc, char** argv){
 	enum {INVALID_MODE, DUMP_FIB, DUMP_CHALLENGE, RUN_CHALLENGE, CONVERT_CHALLENGE} mode
@@ -211,6 +213,7 @@ int main(int argc, char** argv){
 		} else if(strcmp(argv[cmd_pos], "--dump-fib") == 0){
 			mode = DUMP_FIB;
 			cmd_pos += 1;
+#if 0
 		} else if(strcmp(argv[cmd_pos], "--dump-challenge") == 0){
 			mode = DUMP_CHALLENGE;
 			challenge_filename = string(argv[cmd_pos+1]);
@@ -224,6 +227,7 @@ int main(int argc, char** argv){
 			filename = string(argv[cmd_pos+1]);
 			challenge_filename = string(argv[cmd_pos+2]);
 			cmd_pos += 3;
+#endif
 		} else if(strcmp(argv[cmd_pos], "--fib-file") == 0){
 			table_mode = FILETABLE;
 			filename = argv[cmd_pos+1];
@@ -248,6 +252,7 @@ int main(int argc, char** argv){
 		case DUMP_FIB:
 			table->print_table();
 		break;
+#if 0
 		case DUMP_CHALLENGE:
 			dump_challenge(*table, challenge_filename);
 		break;
@@ -272,6 +277,7 @@ int main(int argc, char** argv){
 		case CONVERT_CHALLENGE:
 			convert_challenge(filename, challenge_filename);
 		break;
+#endif
 		default:
 			print_usage(string(argv[0]));
 		break;

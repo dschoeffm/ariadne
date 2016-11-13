@@ -12,7 +12,8 @@ FileTable::FileTable(string filename) {
 		exit(0);
 	}
 
-	regex regex("^(\\d+\\.\\d+\\.\\d+\\.\\d+)/(\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)$");
+	regex regex("^(\\d+\\.\\d+\\.\\d+\\.\\d+)/(\\d+)\\s+"
+			"(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+");
 	while(1) {
 		bool finished = false;
 		string line;
@@ -46,7 +47,7 @@ FileTable::FileTable(string filename) {
 		route.next_hop = next_hop;
 		route.base = addr;
 		route.prefix_length = len;
-		route.interface = std::numeric_limits<uint16_t>::max();
+		route.interface = uint16_t_max;
 
 		(*entries)[len].push_back(route);
 	}

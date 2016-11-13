@@ -9,14 +9,13 @@ Naive::Naive(RoutingTable& table) : entries(table.getSortedRoutes()) {
 	}
 };
 
-const RoutingTable::route& Naive::route(uint32_t addr) {
+uint16_t Naive::route(uint32_t addr) const {
 	for(int len=32; len>=0; len--){
 		for(auto& route : (*entries)[len]){
 			if(route.base == (addr & masks[len])){
-				return route;
+				return route.next_hop;
 			}
 		}
 	};
-	return RoutingTable::invalidRoute;
+	return uint16_t_max;
 };
-

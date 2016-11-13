@@ -42,7 +42,7 @@ void RoutingTable::aggregate() {
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
 				newRoute.prefix_length = len;
-				newRoute.interface = std::numeric_limits<uint16_t>::max();
+				newRoute.interface = uint16_t_max;
 				counter++;
 			}
 		}
@@ -62,6 +62,12 @@ void RoutingTable::buildNextHopList(){
 	for(auto a : *entries){
 		for(auto r : a){
 			auto it = find(nextHopMapping->begin(), nextHopMapping->end(), r.next_hop);
+
+			// For the directly connected case - one IPv4 -> multiple interfaces
+			while(r.interface != (*nextHopList)[*it].interface){
+				find(it, nextHopMapping->end(), r.next_hop);
+			}
+
 			if(it != nextHopMapping->end()){
 				// Next hop is not yet in the list
 				r.index = nextHopMapping->size();
@@ -70,6 +76,8 @@ void RoutingTable::buildNextHopList(){
 
 				nextHopList->push_back(nh);
 				nextHopMapping->push_back(r.next_hop);
+
+				interfaces.insert(r.interface);
 			} else {
 				r.index = distance(nextHopMapping->begin(), it);
 			}
