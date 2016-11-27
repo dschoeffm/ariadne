@@ -8,18 +8,28 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
+#include <array>
 #include <stdint.h>
 
 #include "util.hpp"
+#include "arpTable.hpp"
 
+using nh_index = uint16_t;
+
+/*! Abstract Routing Table class.
+ * This class should be inherited from, when implementing a source of routing information.
+ */
 class RoutingTable {
 public:
+	/*! One route.
+	 * This struct holds all the necessary information to decribe one specific route.
+	 */
 	struct route {
-		uint32_t base;
-		uint32_t next_hop;
-		uint32_t prefix_length;
-		uint16_t interface;
-		uint16_t index; // Number of nextHop
+		uint32_t base; //!< base address of the route
+		uint32_t next_hop; //!< next hop IPv4 address
+		uint32_t prefix_length; //!< prefix length of the route
+		uint16_t interface; //!< interface number
+		nh_index index; //!< Index of the next Hop
 
 		route() :
 			base(uint32_t_max),
@@ -27,12 +37,18 @@ public:
 			prefix_length(uint32_t_max),
 			interface(uint16_t_max) {};
 
+		/*! Copy Constructor
+		 */
 		route(const route& route) :
 			base(route.base),
 			next_hop(route.next_hop),
 			prefix_length(route.prefix_length),
-			interface(route.interface) {};
+			interface(route.interface),
+	   		index(route.index) {};
 
+		/*! Return if this route is valid
+		 * Valid routes have a base address of not all 1s
+		 */
 		operator bool(){
 			if(base == uint32_t_max){
 				return false;
@@ -42,26 +58,23 @@ public:
 		};
 	};
 
-	struct nextHop {
-		uint8_t mac[6] = {0};
-		uint16_t interface = uint16_t_max;
-	};
 
-	static const route invalidRoute;
+	static const route invalidRoute; //!< invalid Route
 
 protected:
+	/*! All of the routing information is contained here
+	 */
 	std::shared_ptr<std::vector<std::vector<route>>>
 		entries = std::make_shared<std::vector<std::vector<route>>>();
 
-	std::shared_ptr<std::vector<nextHop>>
-		nextHopList = std::make_shared<std::vector<nextHop>>();
-
+	/*! Mapping from next hop index to IPv4 addresses
+	 */
 	std::shared_ptr<std::vector<uint32_t>>
 		nextHopMapping = std::make_shared<std::vector<uint32_t>>();
 
-	std::shared_ptr<std::vector<std::unordered_map<uint32_t, uint8_t[6]>>>
-		directlyConnected = std::make_shared<std::vector<std::unordered_map<uint32_t, uint8_t[6]>>>();
-
+	/*! Update the underlying routing infomation
+	 * Implementation is up to the child class
+	 */
 	virtual void updateInfo() {};
 
 private:
@@ -70,24 +83,35 @@ private:
 	std::unordered_set<uint16_t> interfaces;
 
 public:
+	/*! Print the routing table.
+	 * Similiar to "ip r"
+	 */
 	void print_table();
 
+	/*! Get the routes currently held inside the routing table
+	 * \return routes sorted by prefix length (first index), and base address
+	 */
 	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
 
-	// From index to MAC / interface
-	std::shared_ptr<std::vector<nextHop>> getNextHopList();
-
-	// From index to IPv4
+	/*! From index to IPv4.
+	 * Get a mapping from the next hop index to an IPv4 address
+	 * \return mapping
+	 */
 	std::shared_ptr<std::vector<uint32_t>> getNextHopMapping();
 
-	// Array of mappings from IPv4 to MAC
-	std::shared_ptr<std::vector<std::unordered_map<uint32_t, uint8_t[6]>>> getDirectlyConnected();
+	/*! Get the set of used interfaces
+	 * Return the set of used interface
+	 * \return set of interfaces
+	 */
+	std::unordered_set<uint16_t> getInterfaceSet();
 
+	/*! Update the routing information
+	 * This function updates the routing information and preprocesses it for further usage.
+	 */
 	void update(){
 		updateInfo();
 		aggregate();
 		buildNextHopList();
-		directlyConnected->resize(interfaces.size());
 	};
 };
 

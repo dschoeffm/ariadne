@@ -15,10 +15,18 @@
 #include "util.hpp"
 #include "routingTable.hpp"
 
+/*! Linux kernel based routing table.
+ * Extracts the routing information from the Linux kernel via the netlink API
+ */
 class LinuxTable : public RoutingTable {
 public:
+	/*! Create a new kernel based routing table
+	 */
 	LinuxTable();
 
+	/*! Update the current state with the kernel information.
+	 * Reads the current kernel routing table
+	 */
 	void updateInfo();
 };
 

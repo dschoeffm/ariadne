@@ -16,8 +16,14 @@
 #include "util.hpp"
 #include "routingTable.hpp"
 
+/*! File based routing table.
+ * The routing table is read from a file given to the constructor
+ */
 class FileTable : public RoutingTable {
 public:
+	/*! Read routing table from a file.
+	 * \param filename file to read in
+	 */
 	FileTable(std::string filename);
 };
 

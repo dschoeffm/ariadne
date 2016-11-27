@@ -1,3 +1,4 @@
 .ycm*
 *.swp
 build/
+doc/doxygen/

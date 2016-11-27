@@ -37,7 +37,7 @@ BasicTrie::BasicTrie(RoutingTable& table) : table(table) {
 	buildTrie();
 };
 
-	uint16_t BasicTrie::route(uint32_t addr) const {
+nh_index BasicTrie::route(uint32_t addr) const {
 	// Bootstrap first iteration
 	Internal* cur = root;
 	int pos = 0;
