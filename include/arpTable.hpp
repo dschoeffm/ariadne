@@ -11,6 +11,10 @@
 #include "routingTable.hpp"
 #include "frame.hpp"
 
+// Forward declaration
+// circular dependencies...
+class RoutingTable;
+
 /*! Manages the complete IPv4 -> MAC mapping.
  * Collected mapping as its internal state.
  * Produces distilled tables for specific routing tables.
@@ -31,6 +35,9 @@ public:
 		std::vector<nextHop> nextHops; //!< next hops, index by RT
 		std::vector<std::unordered_map<uint32_t, std::array<uint8_t,6>>>&
 			directlyConnected; //!< directly connected next hops, indexed by interface -> IPv4
+		table(std::vector<nextHop> nextHops,
+				std::vector<std::unordered_map<uint32_t, std::array<uint8_t,6>>>& directlyConnected)
+			: nextHops(nextHops), directlyConnected(directlyConnected){};
 	};
 
 private:
@@ -39,7 +46,7 @@ private:
 	std::shared_ptr<RoutingTable> routingTable;
 
 	// Current Table
-	std::shared_ptr<table> currentTable = std::make_shared<table>();
+	std::shared_ptr<table> currentTable = std::make_shared<table>(std::vector<nextHop>(), directlyConnected);
 
 	// Inter-table Mapping Interface/IPv4 -> MAC (this is core data)
 	// Next Hops are directly attached and NOT inside the routing table

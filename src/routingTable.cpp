@@ -53,28 +53,25 @@ void RoutingTable::aggregate() {
 #endif
 };
 
-std::shared_ptr<std::vector<RoutingTable::nextHop>> RoutingTable::getNextHopList(){
-	return nextHopList;
-}
-
 void RoutingTable::buildNextHopList(){
 	vector<uint32_t> new_nextHopList;
+	std::vector<ARPTable::nextHop> nextHopList;
 	for(auto a : *entries){
 		for(auto r : a){
 			auto it = find(nextHopMapping->begin(), nextHopMapping->end(), r.next_hop);
 
 			// For the directly connected case - one IPv4 -> multiple interfaces
-			while(r.interface != (*nextHopList)[*it].interface){
+			while(r.interface != nextHopList[*it].interface){
 				find(it, nextHopMapping->end(), r.next_hop);
 			}
 
 			if(it != nextHopMapping->end()){
 				// Next hop is not yet in the list
 				r.index = nextHopMapping->size();
-				nextHop nh;
+				ARPTable::nextHop nh;
 				nh.interface = r.interface;
 
-				nextHopList->push_back(nh);
+				nextHopList.push_back(nh);
 				nextHopMapping->push_back(r.next_hop);
 
 				interfaces.insert(r.interface);
