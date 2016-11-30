@@ -6,6 +6,7 @@
 #include <atomic>
 #include <queue>
 #include <stdint.h>
+#include <string.h>
 #include "basicTrie.hpp"
 #include "ring.hpp"
 #include "routingTable.hpp"

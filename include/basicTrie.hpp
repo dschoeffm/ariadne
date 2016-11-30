@@ -20,7 +20,7 @@ private:
 		Internal* left;
 		Internal* right;
 		Internal* parent;
-		uint16_t leaf;
+		nh_index leaf;
 
 		Internal(Internal* left, Internal* right, Internal* parent);
 	};

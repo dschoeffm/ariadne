@@ -55,15 +55,22 @@ void RoutingTable::aggregate() {
 
 void RoutingTable::buildNextHopList(){
 	vector<uint32_t> new_nextHopList;
-	std::vector<ARPTable::nextHop> nextHopList;
+	vector<ARPTable::nextHop> nextHopList;
 	for(auto a : *entries){
 		for(auto r : a){
+
+			if(r.next_hop == 0){
+				r.index = NH_DIRECTLY_CONNECTED;
+			}
+
 			auto it = find(nextHopMapping->begin(), nextHopMapping->end(), r.next_hop);
 
+			/*
 			// For the directly connected case - one IPv4 -> multiple interfaces
 			while(r.interface != nextHopList[*it].interface){
 				find(it, nextHopMapping->end(), r.next_hop);
 			}
+			*/
 
 			if(it != nextHopMapping->end()){
 				// Next hop is not yet in the list

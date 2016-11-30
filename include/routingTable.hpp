@@ -30,6 +30,8 @@ public:
 		uint32_t prefix_length; //!< prefix length of the route
 		uint16_t interface; //!< interface number
 		nh_index index; //!< Index of the next Hop
+#define NH_INVALID uint16_t_max
+#define NH_DIRECTLY_CONNECTED (uint16_t_max -1)
 
 		route() :
 			base(uint32_t_max),

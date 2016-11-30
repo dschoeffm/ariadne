@@ -76,6 +76,29 @@ public:
 		return count;
 	}
 
+	/*! Pop elements from the ring.
+	 * Retrieve as many elements from the ring as possible.
+	 * All data inside "out" will be erased.
+	 * \param out vector to put the elements into
+	 * \return number of elements which were poped from the ring
+	 */
+	unsigned int pop(std::vector<T>& out){
+		lock.lock();
+		unsigned int count = size();
+		out.resize(count);
+
+		unsigned int first_chunk = (tail + count) % RING_SIZE;
+		unsigned int second_chunk = count - first_chunk;
+
+		memcpy(out.data(), vec.data() + tail, first_chunk * sizeof(T));
+		memcpy(out.data() + first_chunk, vec.data(), second_chunk * sizeof(T));
+		tail += count;
+		tail %= RING_SIZE;
+
+		lock.release();
+		return count;
+	}
+
 	/*! Get the number of elements in the ring.
 	 * This function may return a wrong result, in case another thread pushes or popes.
 	 * \return number of elements

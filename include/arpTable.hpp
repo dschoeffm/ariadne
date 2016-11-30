@@ -25,7 +25,7 @@ public:
 	/*! Describes one next Hop.
 	 */
 	struct nextHop {
-		uint8_t mac[6] = {0}; //!< MAC address
+		std::array<uint8_t,6> mac {{0}}; //!< MAC address
 		uint16_t interface = uint16_t_max; //!< interface number
 	};
 
