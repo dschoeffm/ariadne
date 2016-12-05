@@ -33,11 +33,11 @@ public:
 	 * Indices given by the RT need to be used.
 	 */
 	struct table {
-		std::vector<nextHop> nextHops; //!< next hops, index by RT
-		std::vector<std::unordered_map<uint32_t, std::array<uint8_t,6>>>&
-			directlyConnected; //!< directly connected next hops, indexed by interface -> IPv4
+		const std::vector<nextHop> nextHops; //!< next hops, index by RT
+		const std::unordered_map<uint32_t, nextHop>&
+			directlyConnected; //!< directly connected next hops, indexed by IPv4
 		table(std::vector<nextHop> nextHops,
-				std::vector<std::unordered_map<uint32_t, std::array<uint8_t,6>>>& directlyConnected)
+				std::unordered_map<uint32_t, nextHop>& directlyConnected)
 			: nextHops(nextHops), directlyConnected(directlyConnected){};
 	};
 
@@ -47,14 +47,15 @@ private:
 	std::shared_ptr<RoutingTable> routingTable;
 
 	// Current Table
-	std::shared_ptr<table> currentTable = std::make_shared<table>(std::vector<nextHop>(), directlyConnected);
+	std::shared_ptr<table> currentTable
+		= std::make_shared<table>(std::vector<nextHop>(), directlyConnected);
 
 	// Inter-table Mapping Interface/IPv4 -> MAC (this is core data)
 	// Next Hops are directly attached and NOT inside the routing table
-	std::vector<std::unordered_map<uint32_t, std::array<uint8_t,6>>> directlyConnected;
+	std::unordered_map<uint32_t, nextHop> directlyConnected;
 
 	// Inter-table mapping IPv4 -> MAC/Interface (this is the core data)
-	// Next Hops are inside the routin table
+	// Next Hops are inside the routing table
 	std::unordered_map<uint32_t, nextHop> mapping;
 
 public:
@@ -88,6 +89,13 @@ public:
 	 */
 	void prepareRequest(uint32_t ip, uint16_t interface, frame& frame);
 
+	/*! Handle an ARP Response.
+	 * This function updates the internal state of the current ARP table
+	 * according to the newly arrived ARP frame
+	 *
+	 * \param frame the frame holding the ARP Response
+	 */
+	void handleResponse(frame& frame);
 };
 
 #endif /* ARPTABLE_HPP */
