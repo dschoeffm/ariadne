@@ -2,10 +2,11 @@
 #define HEADERS_HPP
 
 #include "stdint.h"
+#include "array"
 
 struct ether {
-	uint8_t destination_mac[6];
-	uint8_t source_mac[6];
+	std::array<uint8_t, 6> d_mac;
+	std::array<uint8_t, 6> s_mac;
 	uint16_t ethertype;
 } __attribute__((packed));
 
@@ -24,8 +25,8 @@ struct ipv4 {
 	uint8_t ttl; //!< Time to live
 	uint8_t proto; //!< next protocol
 	uint16_t checksum; //!< header checksum
-	uint32_t source_ip; //!< source IPv4 address
-	uint32_t destination_ip; //!< destination IPv4 address
+	uint32_t s_ip; //!< source IPv4 address
+	uint32_t d_ip; //!< destination IPv4 address
 } __attribute__((packed));
 
 /*! Representation of the IPv4 header.
@@ -38,10 +39,10 @@ struct arp {
 	uint8_t op; //! Operation
 #define ARP_OP_REQUEST 0x0001
 #define ARP_OP_REPLY 0x0002
-	uint8_t sender_hw_addr[6]; //!< Sender hardware address
-	uint32_t sender_proto_addr; //!< Sender protocol address
-	uint8_t target_hw_addr[6]; //!< Target hardware address
-	uint32_t target_proto_addr; //!< Target protocol address
+	std::array<uint8_t, 6> s_hw_addr; //!< Sender hardware address
+	uint32_t s_proto_addr; //!< Sender protocol address
+	std::array<uint8_t, 6> t_hw_addr; //!< Target hardware address
+	uint32_t t_proto_addr; //!< Target protocol address
 } __attribute__((packed));
 
 #endif /* HEADERS_HPP */
