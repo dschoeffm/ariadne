@@ -1,5 +1,40 @@
 #include "worker.hpp"
 
+static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
+	// Do header verification (rfc 1812)
+	// Step 1
+	if(f_len < 20){
+		return false;
+	}
+
+	// Step 2
+	if(IPv4HdrChecksum(ipv4_hdr) != ipv4_hdr->checksum){
+		return false;
+	}
+
+	// Step 3
+	if(IPv4_VERSION(ipv4_hdr) != 4){
+		return false;
+	}
+
+	// Step 4
+	if(IPv4_IHL(ipv4_hdr) < 5){
+		return false;
+	}
+
+	// Step 5
+	if(ntohs(ipv4_hdr->total_length) < (IPv4_IHL(ipv4_hdr)*4)){
+		return false;
+	}
+
+	// Check for TTL > 1
+	if(ipv4_hdr->ttl <= 1){
+		return false;
+	}
+
+	return true;
+};
+
 void Worker::process(){
 	// Get frames
 	vector<frame> batch;
@@ -10,79 +45,44 @@ void Worker::process(){
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
-		arp* arp_hdr = reinterpret_cast<arp*>(f.buf_ptr + sizeof(ether));
 
 		if(ether_hdr->ethertype == htons(0x0800)){
-			goto ipv4;
-		} else if(ether_hdr->ethertype == htons(0x0806)){
-			goto arp;
-		} else {
-			goto discard;
-		}
-
-ipv4: {
-			// Do header verification (rfc 1812)
-			// Step 1
-			if(f.len < 20){
-				goto discard;
-			}
-
-			// Step 2
-			uint16_t orig_chksum = ipv4_hdr->checksum;
-			/* // TODO need checksum function
-			ip->hdr_checksum = 0;
-			if(rte_ipv4_cksum(ip) != orig_chksum){
-				goto discard;
-			}
-			ip->hdr_checksum = orig_chksum;
-			*/
-
-			// Step 3
-			if(IPv4_VERSION(ipv4_hdr) != 4){
-				goto discard;
-			}
-
-			// Step 4
-			if(IPv4_IHL(ipv4_hdr) < 5){
-				goto discard;
-			}
-
-			// Step 5
-			if(ntohs(ipv4_hdr->total_length) < (IPv4_IHL(ipv4_hdr)*4)){
-				goto discard;
-			}
-
-			// Check for TTL > 1
-			if(ipv4_hdr->ttl <= 1){
-				goto discard;
-			}
-
-			// From here on, all checks were successful
-			ipv4_hdr->ttl--;
-			ipv4_hdr->checksum++;
-
-			// Route the packet
-			nh_index index = cur_lpm->route(ntohl(ipv4_hdr->destination_ip));
-
-			// Look up the next hop
-			array<uint8_t, 6> nh_mac;
-			if(index != NH_DIRECTLY_CONNECTED){
-				nh_mac = cur_arp_table->nextHops[index].mac;
+			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
+				f.iface = IFACE_DISCARD;
 			} else {
-				nh_mac = cur_arp_table->directlyConnected[ntohl(ipv4_hdr->destination_ip)];
-				// TODO which interface ?
-				cur_arp_table->directlyConnected
+				// Check if the packet is targeted at the router
+				if(count(own_IPs.begin(), own_IPs.end(), ipv4_hdr->d_ip)){
+					f.iface = IFACE_HOST;
+					continue;
+				}
+
+				// From here on, all checks were successful
+				ipv4_hdr->ttl--;
+				ipv4_hdr->checksum++;
+
+				// Route the packet
+				nh_index index = cur_lpm->route(ntohl(ipv4_hdr->d_ip));
+
+				// Look up the next hop
+				ARPTable::nextHop nh;
+				if(index != NH_DIRECTLY_CONNECTED){
+					nh = cur_arp_table->nextHops[index];
+				} else {
+					nh = cur_arp_table->directlyConnected.at(ntohl(ipv4_hdr->d_ip));
+				}
+
+				// Set MAC addresses
+				ether_hdr->d_mac = nh.mac;
+				ether_hdr->s_mac = interface_macs[nh.interface];
+				f.iface = nh.interface;
 			}
-
-			continue;
-		};
-arp: {};
-
-		continue;
-
-discard: {};
-		//Just do nothing, this L3 protocol is not implemented
-		continue;
-
+		} else if(ether_hdr->ethertype == htons(0x0806)){
+			f.iface = IFACE_ARP;
+		} else {
+			// This router currently doesn't support L3 Protocol $foo
+			f.iface = IFACE_DISCARD;
+		}
 	}
+
+	egressQ.push(batch);
 };
