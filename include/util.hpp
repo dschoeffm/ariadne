@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <stdio.h>
 
+#include "headers.hpp"
+
 constexpr auto uint16_t_max = std::numeric_limits<uint16_t>::max();
 constexpr auto uint32_t_max = std::numeric_limits<uint32_t>::max();
 
@@ -50,5 +52,19 @@ inline void parseMac(const char* str, uint8_t mac[6]){
 	mac[0] = copy[0]; mac[1] = copy[1]; mac[2] = copy[2];
 	mac[3] = copy[3]; mac[4] = copy[4]; mac[5] = copy[5];
 }
+
+inline uint16_t IPv4HdrChecksum(ipv4* header){
+	uint16_t result = 0;
+	uint16_t* hdr_cast = reinterpret_cast<uint16_t*>(header);
+
+	uint16_t orig_checksum = header->checksum;
+	header->checksum = 0;
+	for(uint8_t i=0; i<(IPv4_IHL(header)*2); i++){
+		result += ~(hdr_cast[i]);
+	}
+
+	header->checksum = orig_checksum;
+	return (~result);
+};
 
 #endif /* UTIL_HPP */
