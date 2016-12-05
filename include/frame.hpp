@@ -10,6 +10,10 @@ struct frame {
 	uint8_t* buf_ptr; //!< pointer to the buffer which holds the frame (must be at least MTU+14 sized)
 	uint16_t len; //!< length of the L2-PDU
 	uint16_t iface; //!< interface responsible for this frame
+#define IFACE_HOST std::numeric_limits<uint16_t>::max() -1;
+#define IFACE_DISCARD std::numeric_limits<uint16_t>::max() -2;
+#define IFACE_ARP std::numeric_limits<uint16_t>::max() -3;
+	uint16_t vlan; //!< VLAN tag (unused as of now)
 };
 
 #endif /* FRAME_HPP */
