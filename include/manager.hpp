@@ -9,7 +9,6 @@
 #include "arpTable.hpp"
 #include "frame.hpp"
 
-#include "netmap.h"
 #include "netmap_user.h"
 #include <sys/ioctl.h>
 
