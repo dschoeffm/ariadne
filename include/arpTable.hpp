@@ -33,8 +33,8 @@ public:
 	 * Indices given by the RT need to be used.
 	 */
 	struct table {
-		const std::vector<nextHop> nextHops; //!< next hops, index by RT
-		const std::unordered_map<uint32_t, nextHop>&
+		std::vector<nextHop> nextHops; //!< next hops, index by RT
+		std::unordered_map<uint32_t, nextHop>&
 			directlyConnected; //!< directly connected next hops, indexed by IPv4
 		table(std::vector<nextHop> nextHops,
 				std::unordered_map<uint32_t, nextHop>& directlyConnected)
@@ -50,7 +50,7 @@ private:
 	std::shared_ptr<table> currentTable
 		= std::make_shared<table>(std::vector<nextHop>(), directlyConnected);
 
-	// Inter-table Mapping Interface/IPv4 -> MAC (this is core data)
+	// Inter-table Mapping IPv4 -> MAC (this is core data)
 	// Next Hops are directly attached and NOT inside the routing table
 	std::unordered_map<uint32_t, nextHop> directlyConnected;
 
@@ -58,14 +58,27 @@ private:
 	// Next Hops are inside the routing table
 	std::unordered_map<uint32_t, nextHop> mapping;
 
+	// MAC addresses of own interfaces
+	std::vector<std::array<uint8_t, 6>>& interface_macs;
+
+	// IPs of own interfaces XXX already in big endian XXX
+	std::vector<uint32_t>& own_IPs;
+
 public:
 	/*! Create new empty ARP table.
 	 * This create an ARP table which is not associated with any next hop data
+	 *
+	 * \param interface_macs MAC addresses of the interfaces
+	 * \param own_IPs IP addresses assigned to the router
 	 */
-	ARPTable(){};
+	ARPTable(std::vector<std::array<uint8_t, 6>>& interface_macs,
+		std::vector<uint32_t>& own_IPs)
+	: interface_macs(interface_macs), own_IPs(own_IPs) {};
 
 	/*! Adapt to new routing table.
 	 * Update the internal state of the ARP table to match the new routing table
+	 *
+	 * \praram routingTable The current routing Table
 	 */
 	void createCurrentTable(std::shared_ptr<RoutingTable> routingTable);
 
@@ -89,13 +102,20 @@ public:
 	 */
 	void prepareRequest(uint32_t ip, uint16_t interface, frame& frame);
 
-	/*! Handle an ARP Response.
+	/*! Handle an ARP Reply.
 	 * This function updates the internal state of the current ARP table
 	 * according to the newly arrived ARP frame
 	 *
 	 * \param frame the frame holding the ARP Response
 	 */
-	void handleResponse(frame& frame);
+	void handleReply(frame& frame);
+
+	/*! Handle an ARP Request.
+	 * This function prepares a reply to respond to the incoming request.
+	 *
+	 * \param frame the frame holding the ARP Request
+	 */
+	void handleRequest(frame& frame);
 };
 
 #endif /* ARPTABLE_HPP */
