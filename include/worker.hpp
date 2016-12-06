@@ -40,7 +40,7 @@ private:
 	std::vector<std::array<uint8_t, 6>>& interface_macs;
 
 	// IPs of own interfaces XXX already in big endian XXX
-	std::vector<uint32_t>& own_IPs;
+	std::vector<std::unordered_set<uint32_t>>& own_IPs;
 
 	// The thread this one worker works in
 	std::thread thread;
@@ -77,7 +77,7 @@ public:
 		Ring<frame>& egressQ,
 		//Ring<frame>& hostQ,
 		std::vector<std::array<uint8_t, 6>>& interface_macs,
-		std::vector<uint32_t>& own_IPs)
+		std::vector<std::unordered_set<uint32_t>>& own_IPs)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
 		/*hostQ(hostQ),*/ interface_macs(interface_macs), own_IPs(own_IPs),
 		thread(&Worker::run, this), state(RUN) {};
