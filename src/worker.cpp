@@ -54,7 +54,7 @@ void Worker::process(){
 				f.iface = IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
-				if(count(own_IPs.begin(), own_IPs.end(), ipv4_hdr->d_ip)){
+				if(count(own_IPs[f.iface].begin(), own_IPs[f.iface].end(), ipv4_hdr->d_ip)){
 					f.iface = IFACE_HOST;
 					continue;
 				}

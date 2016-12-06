@@ -30,6 +30,9 @@ private:
 	shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
 
+	std::vector<std::array<uint8_t, 6>> interface_macs;
+	std::vector<std::unordered_set<uint32_t>> own_IPs;
+
 	enum enum_state {RUN, STOP};
 	std::atomic<enum_state> state;
 
@@ -39,7 +42,8 @@ public:
 	/*! Initialize new Manager.
 	 * Nothing big really
 	 */
-	Manager() {};
+	Manager()
+		: arpTable(interface_macs, own_IPs) {};
 
 	/*! Start the router.
 	 * This function enters the main action loop
