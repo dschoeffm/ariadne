@@ -99,7 +99,9 @@ public:
 	 * Get a mapping from the next hop index to an IPv4 address
 	 * \return mapping
 	 */
-	std::shared_ptr<std::vector<uint32_t>> getNextHopMapping();
+	std::shared_ptr<std::vector<uint32_t>> getNextHopMapping(){
+		return nextHopMapping;
+	};
 
 	/*! Get the set of used interfaces
 	 * Return the set of used interface
