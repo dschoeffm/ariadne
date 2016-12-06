@@ -62,7 +62,7 @@ private:
 	std::vector<std::array<uint8_t, 6>>& interface_macs;
 
 	// IPs of own interfaces XXX already in big endian XXX
-	std::vector<uint32_t>& own_IPs;
+	std::vector<std::unordered_set<uint32_t>>& own_IPs;
 
 public:
 	/*! Create new empty ARP table.
@@ -72,7 +72,7 @@ public:
 	 * \param own_IPs IP addresses assigned to the router
 	 */
 	ARPTable(std::vector<std::array<uint8_t, 6>>& interface_macs,
-		std::vector<uint32_t>& own_IPs)
+		std::vector<std::unordered_set<uint32_t>>& own_IPs)
 	: interface_macs(interface_macs), own_IPs(own_IPs) {};
 
 	/*! Adapt to new routing table.
