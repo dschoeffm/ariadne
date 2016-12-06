@@ -36,6 +36,9 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 };
 
 void Worker::process(){
+	// TODO
+	// ICMP STUFF
+
 	// Get frames
 	vector<frame> batch;
 	ingressQ.pop(batch);
