@@ -3,6 +3,11 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <atomic>
+#include <unordered_set>
+#include <array>
+
 #include "ring.hpp"
 #include "worker.hpp"
 #include "routingTable.hpp"
@@ -32,24 +37,30 @@ private:
 
 	std::vector<std::array<uint8_t, 6>> interface_macs;
 	std::vector<std::unordered_set<uint32_t>> own_IPs;
+	std::vector<std::string> interface_names;
 
 	enum enum_state {RUN, STOP};
 	std::atomic<enum_state> state;
 
 	void process();
 
+	void fillNetLink();
+
+	void startWorkerThreads();
+
 public:
 	/*! Initialize new Manager.
 	 * Nothing big really
 	 */
 	Manager()
-		: arpTable(interface_macs, own_IPs) {};
+		: arpTable(interface_macs, own_IPs) {
+		fillNetLink();};
 
 	/*! Start the router.
 	 * This function enters the main action loop
 	 */
 	void run(){
-		// TODO start the worker threads
+		startWorkerThreads();
 		while(state.load() == RUN){
 			process();
 		}
