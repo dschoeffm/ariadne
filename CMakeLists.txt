@@ -18,6 +18,7 @@ file(GLOB SOURCES src/*.cpp)
 
 SET(ALL_LIBS
 	-lmnl
+	-pthreads
 )
 
 ADD_EXECUTABLE(${PRJ} ${SOURCES})
