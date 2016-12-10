@@ -31,9 +31,11 @@
  */
 class Manager {
 private:
-	std::vector<Worker> worker;
-	std::vector<Ring<frame>> rings;
+	std::vector<Worker*> worker;
+	std::vector<Ring<frame>> in_rings;
+	std::vector<Ring<frame>> out_rings;
 	Ring<frame> hostQ;
+	std::shared_ptr<LPM> cur_lpm;
 
 	std::vector<netmap_ring> netmap_rings;
 	std::vector<netmap_if> netmaps_ifs;
