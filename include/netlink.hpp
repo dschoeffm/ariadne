@@ -14,8 +14,12 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+/*! Handle Netlink calls.
+ */
 class Netlink {
 public:
+	/*! Return all interfaces of the router (unordered).
+	 */
 	static std::shared_ptr<std::vector<interface>> getAllInterfaces();
 };
 

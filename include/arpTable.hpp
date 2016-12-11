@@ -37,6 +37,8 @@ public:
 		std::vector<nextHop> nextHops; //!< next hops, index by RT
 		std::unordered_map<uint32_t, nextHop>&
 			directlyConnected; //!< directly connected next hops, indexed by IPv4
+		/*! Constructor setting all members
+		 */
 		table(std::vector<nextHop> nextHops,
 				std::unordered_map<uint32_t, nextHop>& directlyConnected)
 			: nextHops(nextHops), directlyConnected(directlyConnected){};
@@ -66,8 +68,7 @@ public:
 	/*! Create new empty ARP table.
 	 * This create an ARP table which is not associated with any next hop data
 	 *
-	 * \param interface_macs MAC addresses of the interfaces
-	 * \param own_IPs IP addresses assigned to the router
+	 * \param interfaces Interfaces of the router
 	 */
 	ARPTable(std::shared_ptr<std::vector<interface>> interfaces)
 	: interfaces(interfaces) {};
@@ -75,7 +76,7 @@ public:
 	/*! Adapt to new routing table.
 	 * Update the internal state of the ARP table to match the new routing table
 	 *
-	 * \praram routingTable The current routing Table
+	 * \param routingTable The current routing Table
 	 */
 	void createCurrentTable(std::shared_ptr<RoutingTable> routingTable);
 
