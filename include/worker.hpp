@@ -65,7 +65,7 @@ public:
 	 * \param cur_arp_table the Current ARP lookup table
 	 * \param ingressQ Input ring of new packets
 	 * \param egressQ Output ring of processed packets
-	 * \param hostQ Ring to the kernel
+	 * \param interfaces Interfaces of the router
 	 */
 	Worker(
 		std::shared_ptr<LPM> cur_lpm,

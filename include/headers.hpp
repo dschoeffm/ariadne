@@ -4,10 +4,12 @@
 #include "stdint.h"
 #include "array"
 
+/*! Representation of the etherner header.
+ */
 struct ether {
-	std::array<uint8_t, 6> d_mac;
-	std::array<uint8_t, 6> s_mac;
-	uint16_t ethertype;
+	std::array<uint8_t, 6> d_mac; //!< Destination MAC
+	std::array<uint8_t, 6> s_mac; //!< Source MAC
+	uint16_t ethertype; //!< Ethertype
 } __attribute__((packed));
 
 /*! Representation of the IPv4 header.
@@ -36,7 +38,7 @@ struct arp {
 	uint16_t proto_type; //!< Protocol type (0x0800)
 	uint8_t hw_len; //!< Length of hardware address (6)
 	uint8_t proto_len; //!< Length of protocol address (4)
-	uint8_t op; //! Operation
+	uint8_t op; //!< Operation
 #define ARP_OP_REQUEST 0x0001
 #define ARP_OP_REPLY 0x0002
 	std::array<uint8_t, 6> s_hw_addr; //!< Sender hardware address
