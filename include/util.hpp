@@ -67,4 +67,9 @@ inline uint16_t IPv4HdrChecksum(ipv4* header){
 	return (~result);
 };
 
+template<typename T>
+inline T rotl(T in, int s){
+	return (in << s) | (in >> (std::numeric_limits<T>::digits - s));
+}
+
 #endif /* UTIL_HPP */

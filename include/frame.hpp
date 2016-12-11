@@ -2,6 +2,8 @@
 #define FRAME_HPP
 
 #include <stdint.h>
+#include "util.hpp"
+#include "headers.hpp"
 
 /*! One L2 Frame.
  * This datastructure represents one ethernet frame.
@@ -14,6 +16,7 @@ struct frame {
 #define IFACE_DISCARD std::numeric_limits<uint16_t>::max() -2;
 #define IFACE_ARP std::numeric_limits<uint16_t>::max() -3;
 	uint16_t vlan; //!< VLAN tag (unused as of now)
+	uint16_t hash(); //!< Hash value of this frame
 };
 
 #endif /* FRAME_HPP */
