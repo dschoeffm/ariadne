@@ -26,7 +26,7 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t interface, frame& frame){
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
-	ether_hdr->s_mac = interface_macs[interface];
+	ether_hdr->s_mac = interfaces->at(interface).mac;
 	ether_hdr->d_mac = {{0xff}};
 
 	arp_hdr->hw_type = htons(0x0001);
@@ -35,13 +35,12 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t interface, frame& frame){
 	arp_hdr->proto_len = 4;
 	arp_hdr->op = ARP_OP_REQUEST;
 
-	arp_hdr->s_hw_addr = interface_macs[interface];
-	auto ownIP = own_IPs[interface].begin();
-	if(ownIP == own_IPs[interface].end()){
+	arp_hdr->s_hw_addr = interfaces->at(interface).mac;
+	if(interfaces->at(interface).IPs.empty()){
 		cerr << "Cannot send ARP without an IP address on interface" << endl;
 		return;
 	}
-	arp_hdr->s_proto_addr = *ownIP;
+	arp_hdr->s_proto_addr = interfaces->at(interface).IPs.front();
 	arp_hdr->t_hw_addr = {{0}};
 	arp_hdr->t_proto_addr = htonl(ip);
 
@@ -97,8 +96,9 @@ void ARPTable::handleRequest(frame& frame){
 		return;
 	}
 
+	interface& interface = interfaces->at(frame.iface);
 	// Check if we are asked
-	if(!count(own_IPs[frame.iface].begin(), own_IPs[frame.iface].end(),
+	if(!count(interface.IPs.begin(), interface.IPs.end(),
 			arp_hdr->t_proto_addr)){
 		return;
 	}
@@ -110,9 +110,9 @@ void ARPTable::handleRequest(frame& frame){
 	uint32_t t_ip = arp_hdr->t_proto_addr;
 	arp_hdr->t_proto_addr = arp_hdr->s_proto_addr;
 
-	arp_hdr->s_hw_addr = interface_macs[frame.iface];
+	arp_hdr->s_hw_addr = interface.mac;
 	arp_hdr->s_proto_addr = t_ip;
 
-	ether_hdr->s_mac = interface_macs[frame.iface];
+	ether_hdr->s_mac = interface.mac;
 	ether_hdr->d_mac = {{0xff}};
 }
