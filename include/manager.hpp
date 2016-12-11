@@ -14,15 +14,11 @@
 #include "routingTable.hpp"
 #include "arpTable.hpp"
 #include "frame.hpp"
+#include "netlink.hpp"
+#include "interface.hpp"
 
 #include "netmap_user.h"
 #include <sys/ioctl.h>
-
-#include <libmnl/libmnl.h>
-//#include <linux/if.h>
-#include <linux/if_link.h>
-#include <linux/rtnetlink.h>
-
 
 /*! Core manager class.
  * This class manages the whole router.
@@ -41,20 +37,18 @@ private:
 	std::vector<netmap_if> netmaps_ifs;
 	nmreq nmreq_root;
 
+	std::vector<std::string> interfaces_to_use;
+	std::shared_ptr<std::vector<interface>> interfaces = fillNetLink();
+
 	shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
-
-	std::vector<std::array<uint8_t, 6>> interface_macs;
-	std::vector<std::unordered_set<uint32_t>> own_IPs;
-	std::vector<std::string> interface_names;
-	std::unordered_set<std::string> interfaces;
 
 	enum enum_state {RUN, STOP};
 	std::atomic<enum_state> state;
 
 	void process();
 
-	void fillNetLink();
+	static std::shared_ptr<std::vector<interface>> fillNetLink();
 
 	void startWorkerThreads();
 
@@ -62,10 +56,9 @@ public:
 	/*! Initialize new Manager.
 	 * Nothing big really
 	 */
-	Manager(std::unordered_set<std::string> interfaces)
-		: arpTable(interface_macs, own_IPs)
-		, interfaces(interfaces) {
-		fillNetLink();};
+	Manager(std::vector<std::string> interfaces_to_use)
+		: interfaces_to_use(interfaces_to_use),
+		arpTable(interfaces) {};
 
 	/*! Start the router.
 	 * This function enters the main action loop

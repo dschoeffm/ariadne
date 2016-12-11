@@ -36,11 +36,8 @@ private:
 	Ring<frame>& egressQ;
 	//Ring<frame>& hostQ;
 
-	// MACs of own interfaces
-	std::vector<std::array<uint8_t, 6>>& interface_macs;
-
-	// IPs of own interfaces XXX already in big endian XXX
-	std::vector<std::unordered_set<uint32_t>>& own_IPs;
+	// Interfaces to be used
+	std::shared_ptr<std::vector<interface>> interfaces;
 
 	// The thread this one worker works in
 	std::thread thread;
@@ -75,12 +72,9 @@ public:
 		std::shared_ptr<ARPTable::table> cur_arp_table,
 		Ring<frame>& ingressQ,
 		Ring<frame>& egressQ,
-		//Ring<frame>& hostQ,
-		std::vector<std::array<uint8_t, 6>>& interface_macs,
-		std::vector<std::unordered_set<uint32_t>>& own_IPs)
+		std::shared_ptr<std::vector<interface>> interfaces)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
-		/*hostQ(hostQ),*/ interface_macs(interface_macs), own_IPs(own_IPs),
-		thread(&Worker::run, this), state(RUN) {};
+		interfaces(interfaces), thread(&Worker::run, this), state(RUN) {};
 
 	/*! Update Worker
 	 * This function updates the worker thread with new information
