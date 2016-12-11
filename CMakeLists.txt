@@ -6,7 +6,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -DDEBUG -g3 -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
 
 INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -18,7 +18,7 @@ file(GLOB SOURCES src/*.cpp)
 
 SET(ALL_LIBS
 	-lmnl
-	-pthreads
+	-pthread
 )
 
 ADD_EXECUTABLE(${PRJ} ${SOURCES})
