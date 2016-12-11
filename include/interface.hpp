@@ -11,7 +11,7 @@
  * to characterize one ethernet port
  */
 struct interface {
-	std::array<uint8_t, 6> mac; //!< MAC address
+	std::array<uint8_t, 6> mac = {{0}}; //!< MAC address
 	uint32_t index; //!< Index of the Interface
 	std::vector<uint32_t> IPs; //!< All configured IPs
 	std::string name; //!< Name of the interface
