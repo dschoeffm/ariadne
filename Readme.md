@@ -14,6 +14,8 @@ or IPsec should be easily feasible.
 
 ## Why use Ariadne in the first Place?
 
+### The Production View
+
 In production, Ariadne can speed up the forwarding plane, because it bypasses the
 expansive kernel TCP/IP stack, and handles everything it can in user space.
 
@@ -22,9 +24,18 @@ expansive kernel TCP/IP stack, and handles everything it can in user space.
 Other programs relying on network connectivity, such as an SSH or routing daemon
 will continue working as normal.
 Packets destined to the router itself are re-injected into the kernel stack.
+Ariadne is designed to integrate itself into a preexisting ecosystem.
+
+### The Development View
+
+As the Internet is subject to constant change, existing solutions need to be
+reevaluated and adapted to fit new requirements.
+
+Ariadne enables developers to rely on a user space based framework, written in
+a solid and common language. Due to its design, new modules can be integrated
+into the system and pre-existing modules can be withdrawn or extended.
 
 ## Compilation
-
 
 In order to compile Ariadne, some dependencies need to be installed:
 * C++ compiler (see below)
