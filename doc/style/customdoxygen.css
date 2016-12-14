@@ -159,6 +159,7 @@ dl.el {
 	margin-left: -1cm;
 }
 
+
 pre.fragment {
         border: 1px solid #C4CFE5;
         background-color: #FBFCFD;
@@ -173,24 +174,36 @@ pre.fragment {
 }
 
 div.fragment {
-        padding: 4px;
-        margin: 4px 8px 4px 2px;
+  font-family: monospace;
+  margin: 4em auto;
+  padding: 0.5em;
 	background-color: #f7f7f7;
 	border: 1px solid #C4CFE5;
-    box-shadow: 0px 0px 18px 3px #e6e6e6;
+	box-shadow: 0px 0px 18px 3px #e6e6e6;
+	counter-reset: line;
+	line-height: 0;
+}
+
+
+div.fragment div.line:before {
+  counter-increment: line;
+  content: counter(line);
+  border-right: 1px solid #ddd;
+  padding: 0 .5em;
+  margin-right: .5em;
+  color: #888;
 }
 
 div.line {
-	font-family: monospace, fixed;
-        font-size: 13px;
+    font-size: 13px;
 	min-height: 13px;
-	line-height: 1.0;
+    line-height: 1.2rem;
 	text-wrap: unrestricted;
-	white-space: -moz-pre-wrap; /* Moz */
-	white-space: -pre-wrap;     /* Opera 4-6 */
-	white-space: -o-pre-wrap;   /* Opera 7 */
-	white-space: pre-wrap;      /* CSS3  */
-	word-wrap: break-word;      /* IE 5.5+ */
+	white-space: -moz-pre-wrap;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	white-space: pre-wrap;
+	word-wrap: break-word;
 	text-indent: -53px;
 	padding-left: 53px;
 	padding-bottom: 0px;
