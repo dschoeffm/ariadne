@@ -16,9 +16,16 @@
 #include "frame.hpp"
 #include "netlink.hpp"
 #include "interface.hpp"
+#include "linuxTable.hpp"
 
-#include "netmap_user.h"
+#include <net/netmap_user.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <poll.h>
+#include <signal.h>
 
 /*! Core manager class.
  * This class manages the whole router.
@@ -28,16 +35,21 @@
 class Manager {
 private:
 	std::vector<Worker*> worker;
-	std::vector<Ring<frame>> in_rings;
-	std::vector<Ring<frame>> out_rings;
-	Ring<frame> hostQ;
-	std::shared_ptr<LPM> cur_lpm;
+	Ring<frame>* inRings;
+	Ring<frame>* outRings;
+	std::vector<uint32_t> freeBufs;
+	std::shared_ptr<LPM> curLPM;
+	unsigned int numWorkers;
 
-	std::vector<netmap_ring> netmap_rings;
-	std::vector<netmap_if> netmaps_ifs;
+	std::vector<std::vector<netmap_ring*>> netmapRxRings;
+	std::vector<std::vector<netmap_ring*>> netmapTxRings;
+	std::vector<netmap_if*> netmapIfs;
 	nmreq nmreq_root;
+	std::vector<int> fds;
+	void* mmapRegion;
+	unsigned int numInterfaces;
 
-	std::vector<std::string> interfaces_to_use;
+	std::vector<std::string> interfacesToUse;
 	std::shared_ptr<std::vector<interface>> interfaces = fillNetLink();
 
 	shared_ptr<RoutingTable> routingTable;
@@ -50,20 +62,23 @@ private:
 
 	static std::shared_ptr<std::vector<interface>> fillNetLink();
 
+	void initNetmap();
 	void startWorkerThreads();
 
 public:
 	/*! Initialize new Manager.
 	 * Nothing big really
 	 */
-	Manager(std::vector<std::string> interfaces_to_use)
-		: interfaces_to_use(interfaces_to_use),
+	Manager(std::vector<std::string> interfacesToUse) :
+		numWorkers(thread::hardware_concurrency()-1),
+		interfacesToUse(interfacesToUse),
 		arpTable(interfaces) {};
 
 	/*! Start the router.
 	 * This function enters the main action loop
 	 */
 	void run(){
+		initNetmap();
 		startWorkerThreads();
 		while(state.load() == RUN){
 			process();

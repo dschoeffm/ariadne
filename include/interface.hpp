@@ -12,31 +12,34 @@
  */
 struct interface {
 	std::array<uint8_t, 6> mac = {{0}}; //!< MAC address
-	uint32_t index; //!< Index of the Interface
+	uint32_t netlinkIndex; //!< Index of the interface in the netlink context
+	uint32_t netmapIndex; //!< Index of the interface in the netmap context
 	std::vector<uint32_t> IPs; //!< All configured IPs
 	std::string name; //!< Name of the interface
 
-	/*! Order by index.
+	/*! Order by netmapIndex.
 	 */
 	bool operator< (const interface& i) const {
-		return index > i.index;
+		return netmapIndex > i.netmapIndex;
 	};
 
-	/*! Equal by index.
+	/*! Equal by netmapIndex.
 	 */
 	bool operator== (const interface& i) const {
-		return index == i.index;
+		return netmapIndex == i.netmapIndex;
 	};
 
-	/*! Equal by index.
+	/*! Equal by netmapIndex.
 	 */
 	bool operator== (uint32_t i) const {
-		return index == i;
+		return netmapIndex == i;
 	};
 
-	/*! Minimalistic constructor.
+	/*! Equal by name.
 	 */
-	interface(uint32_t index) : index(index) {};
+	bool operator== (std::string str) const {
+		return name == str;
+	};
 };
 
 #endif /* INTERFACE_HPP */

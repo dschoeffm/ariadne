@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <libmnl/libmnl.h>
-#include <linux/if.h>
+#include <net/if.h>
 #include <linux/if_link.h>
 #include <linux/rtnetlink.h>
 
