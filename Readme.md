@@ -1,22 +1,36 @@
 
-Ariadne
-========================
+# Ariadne
 
 Ariadne is a high-performance software router.
 Its basic idea is, to feature a clean and expandable programming interface for future developments.
+At the moment, it only runs on Linux, but porting it to FreeBSD should be easily possible.
 
-Architecture
-------------------------
+## Architecture
 
 Due to Ariadne's design, the architecture can be adapted for the individual needs of an application.
 In its "base form", simply a router is present, using Netmap as its networking framework.
+Adding other features commonly found in hardware routers, such as firewall capabilities
+or IPsec should be easily feasible.
 
-Compilation
-------------------------
+## Why use Ariadne in the first Place?
+
+In production, Ariadne can speed up the forwarding plane, because it bypasses the
+expansive kernel TCP/IP stack, and handles everything it can in user space.
+
+#### Does that mean my other programs won't run anymore?
+
+Other programs relying on network connectivity, such as an SSH or routing daemon
+will continue working as normal.
+Packets destined to the router itself are re-injected into the kernel stack.
+
+## Compilation
+
 
 In order to compile Ariadne, some dependencies need to be installed:
 * C++ compiler (see below)
 * libmnl >= 1.0.3
+* cmake
+* make
 * netmap (header are sufficient for compilation)
 * a POSIX-compliant system
 * C++11 ready STL-library
@@ -26,10 +40,14 @@ The following compiler versions are known to work, or not to work:
 
 | Compiler | Working Versions | Not Working Versions |
 |:--------:|:----------------:|:--------------------:|
-| GCC      | 5.4.0            | <4.9                 |
+| GCC      | 5.4.0            | 4.8.5                |
 | Clang    | 3.8.1            |                      |
 
-Do not try to use GCC < 4.9, as it will always fail!
+Do not try to use GCC older than 4.9, as it will always fail!
+
+In the following we will build the router out-of-tree, in order to keep the
+working directory clean. Therefore a new directory is created, cmake
+generates the Makefile, which in turn compile the router application.
 
 ```bash
 mkdir build
@@ -37,4 +55,11 @@ cd build
 cmake ..
 make -j4
 ```
+
+## Running Ariadne
+
+```bash
+./ariadne <interfaces to use>
+```
+
 
