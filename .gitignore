@@ -2,3 +2,4 @@
 *.swp
 build/
 doc/doxygen/
+doc/html
