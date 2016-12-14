@@ -23,8 +23,9 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 
 	interface& interface =
 		(it == interfaces->end())
-		? *interfaces->emplace(interfaces->end(), index)
+		? *interfaces->emplace(interfaces->end())
 		: *it;
+	interface.netlinkIndex = index;
 
 	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifm)) {
 		int type = mnl_attr_get_type(attr);
@@ -70,8 +71,9 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 
 	interface& interface =
 		(it == interfaces->end())
-		? *interfaces->emplace(interfaces->end(), index)
+		? *interfaces->emplace(interfaces->end())
 		: *it;
+	interface.netlinkIndex = index;
 
 	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifm)) {
 		int type = mnl_attr_get_type(attr);
