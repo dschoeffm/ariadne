@@ -73,4 +73,9 @@ make -j4
 ./ariadne <interfaces to use>
 ```
 
+## Developing Ariadne
+
+The best way to learn about the internal working of this project is to visit
+the Doxygen site:
+[https://dschoeffm.github.io/ariadne/](https://dschoeffm.github.io/ariadne/)
 
