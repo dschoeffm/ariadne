@@ -76,7 +76,7 @@ public:
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
 		interfaces(interfaces), thread(&Worker::run, this), state(RUN) {};
 
-	/*! Update Worker
+	/*! Update Worker.
 	 * This function updates the worker thread with new information
 	 * \param lpm New LPM datastructure
 	 * \param arp_table New ARP lookup table, corresponrint to lpm
@@ -86,7 +86,7 @@ public:
 		new_arp_table = arp_table;
 	};
 
-	/*! Stop this worker thread
+	/*! Stop this worker thread.
 	 * This function blocks until the worker is actually stopped (joined)
 	 */
 	void stop(){
