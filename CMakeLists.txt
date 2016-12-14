@@ -12,7 +12,7 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-SET(PRJ lpm)
+SET(PRJ ariadne)
 
 file(GLOB SOURCES src/*.cpp)
 
