@@ -1,6 +1,7 @@
 #include "arpTable.hpp"
 
 using namespace std;
+using namespace headers;
 
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	// create a new table;

@@ -1,5 +1,7 @@
 #include "worker.hpp"
 
+using namespace headers;
+
 static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 	// Do header verification (rfc 1812)
 	// Step 1

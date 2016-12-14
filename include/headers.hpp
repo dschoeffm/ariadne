@@ -4,6 +4,8 @@
 #include "stdint.h"
 #include "array"
 
+namespace headers {
+
 /*! Representation of the etherner header.
  */
 struct ether {
@@ -79,5 +81,7 @@ struct icmp {
 	uint8_t code; //!< Code
 	uint16_t checksum; //!< Checksum
 } __attribute__((packed));
+
+}
 
 #endif /* HEADERS_HPP */

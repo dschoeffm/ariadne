@@ -53,7 +53,7 @@ inline void parseMac(const char* str, uint8_t mac[6]){
 	mac[3] = copy[3]; mac[4] = copy[4]; mac[5] = copy[5];
 }
 
-inline uint16_t IPv4HdrChecksum(ipv4* header){
+inline uint16_t IPv4HdrChecksum(headers::ipv4* header){
 	uint16_t result = 0;
 	uint16_t* hdr_cast = reinterpret_cast<uint16_t*>(header);
 

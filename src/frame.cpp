@@ -4,6 +4,8 @@
 #define MAGIC_2 7
 #define MAGIC_3 12
 
+using namespace headers;
+
 static uint16_t ipv4_hash(uint8_t* addr);
 static uint16_t tcp_hash(uint8_t* addr);
 static uint16_t udp_hash(uint8_t* addr);
