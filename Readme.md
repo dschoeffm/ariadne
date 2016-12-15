@@ -60,18 +60,18 @@ In the following we will build the router out-of-tree, in order to keep the
 working directory clean. Therefore a new directory is created, cmake
 generates the Makefile, which in turn compile the router application.
 
-```bash
+~~~{.sh}
 mkdir build
 cd build
 cmake ..
 make -j4
-```
+~~~
 
 ## Running Ariadne
 
-```bash
+~~~{.sh}
 ./ariadne <interfaces to use>
-```
+~~~
 
 ## Developing Ariadne
 
