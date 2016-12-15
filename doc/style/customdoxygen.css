@@ -2,6 +2,7 @@
 
 body, table, div, p, dl {
 	font: 400 14px/22px Roboto,sans-serif;
+    margin: 1px auto
 }
 
 /* @group Heading Levels */
@@ -296,7 +297,15 @@ div.groupText {
 body {
 	background-color: white;
 	color: black;
-        margin: 0;
+    margin: 0;
+    max-width: 70em;
+    margin: 1em auto;
+}
+
+div.container_all {
+    border-radius: 2em 2em 2em 2em;
+    box-shadow: 0 0 20px 2px black;
+    background-color: #f4f4f4;
 }
 
 div.contents {
@@ -885,16 +894,19 @@ address {
 
 table.doxtable caption {
 	caption-side: top;
+    background-color: #f7f7f7;
 }
 
 table.doxtable {
 	border-collapse:collapse;
-        margin-top: 4px;
-        margin-bottom: 4px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    background-color: #f7f7f7;
+    box-shadow: 0px 0px 18px 3px #e6e6e6;
 }
 
 table.doxtable td, table.doxtable th {
-	border: 1px solid #2D4068;
+	border: 1px solid #C4CFE5;
 	padding: 3px 7px 2px;
 }
 
@@ -1079,11 +1091,10 @@ div.ingroups a
 
 div.header
 {
-        background-image:url('nav_h.png');
-        background-repeat:repeat-x;
-	background-color: #F9FAFC;
-	margin:  0px;
-	border-bottom: 1px solid #C4CFE5;
+    background-image: url();
+    background-color: #f3f3f3;
+    margin:  1px;
+	border-bottom: 1px solid #C4CFE5;*/
 }
 
 div.headertitle
@@ -1186,6 +1197,7 @@ dl.section dd {
 	font: 300% Tahoma, Arial,sans-serif;
 	margin: 0px;
 	padding: 2px 0px;
+    text-align: center;
 }
     
 #projectbrief
@@ -1307,7 +1319,7 @@ div.toc li.level4 {
 
 .inherit_header {
         font-weight: bold;
-        color: gray;
+        /*color: gray;*/
         cursor: pointer;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
