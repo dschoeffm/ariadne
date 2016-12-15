@@ -1,0 +1,163 @@
+/* The standard CSS for doxygen 1.8.12 */
+
+body, table, div, p, dl {
+	font: 400 14px/22px Roboto,sans-serif;
+    margin: 1px auto;
+}
+
+h4, h5, h6 {
+    font-style: italic;
+}
+
+pre.fragment {
+        border: 1px solid #C4CFE5;
+        background-color: #FBFCFD;
+        padding: 4px 6px;
+        margin: 4px 8px 4px 2px;
+        overflow: auto;
+        word-wrap: break-word;
+        font-size:  9pt;
+        line-height: 125%;
+        font-family: monospace, fixed;
+        font-size: 105%;
+}
+
+div.fragment {
+  font-family: monospace;
+  margin: 1em auto;
+  padding: 0.5em;
+	/*background-color: #f7f7f7;*/
+  background-color: whitesmoke;
+	border: 1px solid #C4CFE5;
+	box-shadow: 0px 0px 18px 3px #e6e6e6;
+	/*counter-reset: line;*/
+	line-height: 0;
+}
+
+table.doxtable {
+    border-collapse:collapse;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    background-color: whitesmoke;
+    box-shadow: 0px 0px 18px 3px #e6e6e6;
+}
+
+table.doxtable td, table.doxtable th {
+    border: 1px solid #C4CFE5;
+}
+
+table.doxtable th {
+    background-color: #f2f2f2;
+    color: black
+}
+
+/*
+div.fragment div.line:before {
+  counter-increment: line;
+  content: counter(line);
+  border-right: 1px solid #ddd;
+  padding: 0 .5em;
+  margin-right: .5em;
+  color: #888;
+}
+*/
+
+/*
+div.line:after {
+    content:"\000A";
+    white-space: pre;
+}
+*/
+
+body {
+    color: #404040;
+    background: #f0f0f0;
+    margin: 0;
+    max-width: 70em;
+    margin: 1em auto;
+}
+
+div.container_all {
+    /*border-radius: 2em 2em 2em 2em;*/
+    /*box-shadow: 0 0 20px 2px black;*/
+    /*background-color: #f4f4f4;*/
+    /*background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%)*/
+}
+
+div.header
+{
+    background-image: url();
+    background-color: #f0f0f0;
+    /*background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);*/
+    margin:  1px;
+	border-bottom: 1px solid #C4CFE5;
+}
+
+#projectname
+{
+	font: 300% Tahoma, Arial,sans-serif;
+	margin: 0px;
+	padding: 2px 0px;
+    text-align: center;
+}
+
+.sm-dox {
+    padding: 0 10px;
+    background: whitesmoke;
+    box-shadow: 0px 0px 18px 3px #e6e6e6;
+    border: 1px solid #C4CFE5;
+}
+
+.navpath {
+    background: whitesmoke;
+    box-shadow: 0px 0px 18px 3px #e6e6e6;
+    border: 0px solid #C4CFE5;
+}
+
+.sm-dox a, .navpath ul {
+    background-image: url();
+}
+
+
+.sm-dox a.highlighted {
+    /*background-image:url();
+}
+.sm-dox a:hover{*/
+    background-image:url("tab_a.png");
+    background-repeat:repeat-x;
+    color:white;
+    text-shadow:0 1px 1px black;
+}
+
+.navpath ul {
+    border: 0px solid #C4CFE5;
+    padding-left: 10px;
+}
+
+#titlearea {
+    border-bottom: 0px;
+}
+
+.memberdecls td {
+    background-color: whitesmoke;
+}
+
+.navpath li {
+    list-style-type: none;
+    float: left;
+    padding-left: 10px;
+    padding-right: 15px;
+    background-image: url();
+    min-width: 50px;
+    text-align: center;
+}
+
+.navpath li a {
+    text-shadow: 0px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.navpath li a:hover {
+    text-shadow: 0px 0px 20px rgba(0, 0, 0, 1);
+    color: #283A5D;
+}
+

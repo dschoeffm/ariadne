@@ -17,10 +17,33 @@
 #include "fileTable.hpp"
 #include "linuxTable.hpp"
 #include "naive.hpp"
-//#include "dxr.hpp"
 #include "basicTrie.hpp"
 #include "pcTrie.hpp"
+#include "manager.hpp"
 
+using namespace std;
+
+void print_usage(string name) {
+	cout  << "Usage: " << name << "list-of-interfaces" << endl;
+};
+
+int main(int argc, char** argv){
+	if(argc < 2){
+		print_usage(argv[0]);
+		return 0;
+	}
+
+	vector<string> interfaces;
+	for(int i=1; i<argc; i++){
+		interfaces.push_back(argv[i]);
+	}
+
+	Manager manager(interfaces);
+	manager.run();
+};
+
+// old stuff, only here, because to good to delete
+#if 0
 #define CHALLENGE_VERSION 1
 
 using namespace std;
@@ -285,3 +308,4 @@ int main(int argc, char** argv){
 
 	return 0;
 }
+#endif

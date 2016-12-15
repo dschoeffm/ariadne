@@ -11,6 +11,7 @@
 #include "routingTable.hpp"
 #include "frame.hpp"
 #include "headers.hpp"
+#include "interface.hpp"
 
 // Forward declaration
 // circular dependencies...
@@ -36,6 +37,8 @@ public:
 		std::vector<nextHop> nextHops; //!< next hops, index by RT
 		std::unordered_map<uint32_t, nextHop>&
 			directlyConnected; //!< directly connected next hops, indexed by IPv4
+		/*! Constructor setting all members
+		 */
 		table(std::vector<nextHop> nextHops,
 				std::unordered_map<uint32_t, nextHop>& directlyConnected)
 			: nextHops(nextHops), directlyConnected(directlyConnected){};
@@ -58,27 +61,22 @@ private:
 	// Next Hops are inside the routing table
 	std::unordered_map<uint32_t, nextHop> mapping;
 
-	// MAC addresses of own interfaces
-	std::vector<std::array<uint8_t, 6>>& interface_macs;
-
-	// IPs of own interfaces XXX already in big endian XXX
-	std::vector<uint32_t>& own_IPs;
+	// Interfaces by OS index
+	std::shared_ptr<std::vector<interface>> interfaces;
 
 public:
 	/*! Create new empty ARP table.
 	 * This create an ARP table which is not associated with any next hop data
 	 *
-	 * \param interface_macs MAC addresses of the interfaces
-	 * \param own_IPs IP addresses assigned to the router
+	 * \param interfaces Interfaces of the router
 	 */
-	ARPTable(std::vector<std::array<uint8_t, 6>>& interface_macs,
-		std::vector<uint32_t>& own_IPs)
-	: interface_macs(interface_macs), own_IPs(own_IPs) {};
+	ARPTable(std::shared_ptr<std::vector<interface>> interfaces)
+	: interfaces(interfaces) {};
 
 	/*! Adapt to new routing table.
 	 * Update the internal state of the ARP table to match the new routing table
 	 *
-	 * \praram routingTable The current routing Table
+	 * \param routingTable The current routing Table
 	 */
 	void createCurrentTable(std::shared_ptr<RoutingTable> routingTable);
 

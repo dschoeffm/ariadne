@@ -3,14 +3,29 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <atomic>
+#include <unordered_set>
+#include <array>
+#include <algorithm>
+
 #include "ring.hpp"
 #include "worker.hpp"
 #include "routingTable.hpp"
 #include "arpTable.hpp"
 #include "frame.hpp"
+#include "netlink.hpp"
+#include "interface.hpp"
+#include "linuxTable.hpp"
 
-#include "netmap_user.h"
+#include <net/netmap_user.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <poll.h>
+#include <signal.h>
 
 /*! Core manager class.
  * This class manages the whole router.
@@ -19,13 +34,23 @@
  */
 class Manager {
 private:
-	std::vector<Worker> worker;
-	std::vector<Ring<frame>> rings;
-	Ring<frame> hostQ;
+	std::vector<Worker*> worker;
+	Ring<frame>* inRings;
+	Ring<frame>* outRings;
+	std::vector<uint32_t> freeBufs;
+	std::shared_ptr<LPM> curLPM;
+	unsigned int numWorkers;
 
-	std::vector<netmap_ring> netmap_rings;
-	std::vector<netmap_if> netmaps_ifs;
+	std::vector<std::vector<netmap_ring*>> netmapRxRings;
+	std::vector<std::vector<netmap_ring*>> netmapTxRings;
+	std::vector<netmap_if*> netmapIfs;
 	nmreq nmreq_root;
+	std::vector<int> fds;
+	void* mmapRegion;
+	unsigned int numInterfaces;
+
+	std::vector<std::string> interfacesToUse;
+	std::shared_ptr<std::vector<interface>> interfaces = fillNetLink();
 
 	shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
@@ -35,17 +60,26 @@ private:
 
 	void process();
 
+	static std::shared_ptr<std::vector<interface>> fillNetLink();
+
+	void initNetmap();
+	void startWorkerThreads();
+
 public:
 	/*! Initialize new Manager.
 	 * Nothing big really
 	 */
-	Manager() {};
+	Manager(std::vector<std::string> interfacesToUse) :
+		numWorkers(thread::hardware_concurrency()-1),
+		interfacesToUse(interfacesToUse),
+		arpTable(interfaces) {};
 
 	/*! Start the router.
 	 * This function enters the main action loop
 	 */
 	void run(){
-		// TODO start the worker threads
+		initNetmap();
+		startWorkerThreads();
 		while(state.load() == RUN){
 			process();
 		}

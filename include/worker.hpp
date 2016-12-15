@@ -36,11 +36,8 @@ private:
 	Ring<frame>& egressQ;
 	//Ring<frame>& hostQ;
 
-	// MACs of own interfaces
-	std::vector<std::array<uint8_t, 6>>& interface_macs;
-
-	// IPs of own interfaces XXX already in big endian XXX
-	std::vector<uint32_t>& own_IPs;
+	// Interfaces to be used
+	std::shared_ptr<std::vector<interface>> interfaces;
 
 	// The thread this one worker works in
 	std::thread thread;
@@ -68,21 +65,18 @@ public:
 	 * \param cur_arp_table the Current ARP lookup table
 	 * \param ingressQ Input ring of new packets
 	 * \param egressQ Output ring of processed packets
-	 * \param hostQ Ring to the kernel
+	 * \param interfaces Interfaces of the router
 	 */
 	Worker(
 		std::shared_ptr<LPM> cur_lpm,
 		std::shared_ptr<ARPTable::table> cur_arp_table,
 		Ring<frame>& ingressQ,
 		Ring<frame>& egressQ,
-		//Ring<frame>& hostQ,
-		std::vector<std::array<uint8_t, 6>>& interface_macs,
-		std::vector<uint32_t>& own_IPs)
+		std::shared_ptr<std::vector<interface>> interfaces)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
-		/*hostQ(hostQ),*/ interface_macs(interface_macs), own_IPs(own_IPs),
-		thread(&Worker::run, this), state(RUN) {};
+		interfaces(interfaces), thread(&Worker::run, this), state(RUN) {};
 
-	/*! Update Worker
+	/*! Update Worker.
 	 * This function updates the worker thread with new information
 	 * \param lpm New LPM datastructure
 	 * \param arp_table New ARP lookup table, corresponrint to lpm
@@ -92,7 +86,7 @@ public:
 		new_arp_table = arp_table;
 	};
 
-	/*! Stop this worker thread
+	/*! Stop this worker thread.
 	 * This function blocks until the worker is actually stopped (joined)
 	 */
 	void stop(){

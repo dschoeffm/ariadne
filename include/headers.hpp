@@ -4,10 +4,14 @@
 #include "stdint.h"
 #include "array"
 
+namespace headers {
+
+/*! Representation of the etherner header.
+ */
 struct ether {
-	std::array<uint8_t, 6> d_mac;
-	std::array<uint8_t, 6> s_mac;
-	uint16_t ethertype;
+	std::array<uint8_t, 6> d_mac; //!< Destination MAC
+	std::array<uint8_t, 6> s_mac; //!< Source MAC
+	uint16_t ethertype; //!< Ethertype
 } __attribute__((packed));
 
 /*! Representation of the IPv4 header.
@@ -24,6 +28,9 @@ struct ipv4 {
 #define IPv4_FLAGS(x) (x->flags_fragmentation >> 18)
 	uint8_t ttl; //!< Time to live
 	uint8_t proto; //!< next protocol
+#define IPv4_PROTO_ICMP 1
+#define IPv4_PROTO_TCP 6
+#define IPv4_PROTO_UDP 17
 	uint16_t checksum; //!< header checksum
 	uint32_t s_ip; //!< source IPv4 address
 	uint32_t d_ip; //!< destination IPv4 address
@@ -36,7 +43,7 @@ struct arp {
 	uint16_t proto_type; //!< Protocol type (0x0800)
 	uint8_t hw_len; //!< Length of hardware address (6)
 	uint8_t proto_len; //!< Length of protocol address (4)
-	uint8_t op; //! Operation
+	uint8_t op; //!< Operation
 #define ARP_OP_REQUEST 0x0001
 #define ARP_OP_REPLY 0x0002
 	std::array<uint8_t, 6> s_hw_addr; //!< Sender hardware address
@@ -44,5 +51,37 @@ struct arp {
 	std::array<uint8_t, 6> t_hw_addr; //!< Target hardware address
 	uint32_t t_proto_addr; //!< Target protocol address
 } __attribute__((packed));
+
+/*! Representation of the IPv4 header.
+ */
+struct tcp {
+	uint16_t s_port; //!< Source port
+	uint16_t d_port; //!< Destination port
+	uint32_t seq; //!< Sequence number
+	uint32_t ack; //!< Acknowledgement number
+	uint16_t offset_flags; //!< Data offset and flags
+	uint16_t window; //!< Receive window
+	uint16_t checksum; //!< Checksum
+	uint16_t urgend_ptr; //!< Urgent pointer
+} __attribute__((packed));
+
+/*! Representation of the UDP header.
+ */
+struct udp {
+	uint16_t s_port; //!< Source port
+	uint16_t d_port; //!< Destination port
+	uint16_t len; //!< Length
+	uint16_t checksum; //!< Checksum
+} __attribute__((packed));
+
+/*! Representation of the ICMP header
+ */
+struct icmp {
+	uint8_t type; //!< Type
+	uint8_t code; //!< Code
+	uint16_t checksum; //!< Checksum
+} __attribute__((packed));
+
+}
 
 #endif /* HEADERS_HPP */

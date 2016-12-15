@@ -1,5 +1,7 @@
 #include "worker.hpp"
 
+using namespace headers;
+
 static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 	// Do header verification (rfc 1812)
 	// Step 1
@@ -36,6 +38,9 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 };
 
 void Worker::process(){
+	// TODO
+	// ICMP STUFF
+
 	// Get frames
 	vector<frame> batch;
 	ingressQ.pop(batch);
@@ -45,13 +50,14 @@ void Worker::process(){
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
+		interface& interface = interfaces->at(f.iface);
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
 				f.iface = IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
-				if(count(own_IPs.begin(), own_IPs.end(), ipv4_hdr->d_ip)){
+				if(count(interface.IPs.begin(), interface.IPs.end(), ipv4_hdr->d_ip)){
 					f.iface = IFACE_HOST;
 					continue;
 				}
@@ -73,7 +79,7 @@ void Worker::process(){
 
 				// Set MAC addresses
 				ether_hdr->d_mac = nh.mac;
-				ether_hdr->s_mac = interface_macs[nh.interface];
+				ether_hdr->s_mac = interface.mac;
 				f.iface = nh.interface;
 			}
 		} else if(ether_hdr->ethertype == htons(0x0806)){
