@@ -54,6 +54,9 @@ The following compiler versions are known to work, or not to work:
 | GCC      | 6.1.1, 5.4.0, 5.3.1  | 4.8.5                |
 | Clang    | 3.9.0, 3.8.1         |                      |
 
+These compilers were tested with the following revision:
+74ce 72fb ad46 400a 4c24 6e7f a4f1 ea09 388a 1b7b
+
 Do not try to use GCC older than 4.9, as it will always fail!
 
 In the following we will build the router out-of-tree, in order to keep the
