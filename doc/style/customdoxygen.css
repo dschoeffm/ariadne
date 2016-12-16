@@ -1,14 +1,17 @@
 /* The standard CSS for doxygen 1.8.12 */
 
+/*
 body, table, div, p, dl {
 	font: 400 14px/22px Roboto,sans-serif;
     margin: 1px auto;
 }
+*/
 
 h4, h5, h6 {
     font-style: italic;
 }
 
+/*
 pre.fragment {
         border: 1px solid #C4CFE5;
         background-color: #FBFCFD;
@@ -21,6 +24,7 @@ pre.fragment {
         font-family: monospace, fixed;
         font-size: 105%;
 }
+*/
 
 div.fragment {
   font-family: monospace;
@@ -139,7 +143,7 @@ div.header
 }
 
 .memberdecls td {
-    background-color: whitesmoke;
+    background-color: #f0f0f0;
 }
 
 .navpath li {
