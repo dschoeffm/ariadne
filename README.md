@@ -49,10 +49,10 @@ In order to compile Ariadne, some dependencies need to be installed:
 During the course of the development GCC as well as Clang are being used.
 The following compiler versions are known to work, or not to work:
 
-| Compiler | Working Versions | Not Working Versions |
-|:--------:|:----------------:|:--------------------:|
-| GCC      | 5.4.0            | 4.8.5                |
-| Clang    | 3.8.1            |                      |
+| Compiler | Working Versions     | Not Working Versions |
+|:--------:|:--------------------:|:--------------------:|
+| GCC      | 6.1.1, 5.4.0, 5.3.1  | 4.8.5                |
+| Clang    | 3.9.0, 3.8.1         |                      |
 
 Do not try to use GCC older than 4.9, as it will always fail!
 
