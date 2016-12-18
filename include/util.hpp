@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <algorithm>
 #include <stdio.h>
+#include <iostream>
+#include <cstdlib>
 
 #include "headers.hpp"
 
@@ -70,6 +72,19 @@ inline uint16_t IPv4HdrChecksum(headers::ipv4* header){
 template<typename T>
 inline T rotl(T in, int s){
 	return (in << s) | (in >> (std::numeric_limits<T>::digits - s));
-}
+};
+
+inline void logInfo(std::string str){
+	std::cout << str << std::endl;
+};
+
+inline void logErr(std::string str){
+	std::cerr << str << std::endl;
+};
+
+inline void fatal(std::string str){
+	std::cerr << str << std::endl;
+	std::exit(1);
+};
 
 #endif /* UTIL_HPP */
