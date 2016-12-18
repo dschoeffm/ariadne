@@ -38,8 +38,7 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t interface, frame& frame){
 
 	arp_hdr->s_hw_addr = interfaces->at(interface).mac;
 	if(interfaces->at(interface).IPs.empty()){
-		cerr << "Cannot send ARP without an IP address on interface" << endl;
-		return;
+		fatal("Cannot send ARP request without an IP address on interface");
 	}
 	arp_hdr->s_proto_addr = interfaces->at(interface).IPs.front();
 	arp_hdr->t_hw_addr = {{0}};
@@ -56,12 +55,13 @@ void ARPTable::handleReply(frame& frame){
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
 	if(ether_hdr->ethertype != htons(0x0806)){
-		// This is not an ARP frame
+		logErr("Frame falsely sent to ARPTable::handleReply()");
 		return;
 	}
 
 	if(arp_hdr->op != ARP_OP_REPLY){
 		// This is not a reply
+		logErr("Frame falsely sent to ARPTable::handleReply()");
 		return;
 	}
 
@@ -90,10 +90,12 @@ void ARPTable::handleRequest(frame& frame){
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
 	if(ether_hdr->ethertype != htons(0x0806)){
+		logErr("Frame falsely sent to ARPTable::handleRequest()");
 		return;
 	}
 
 	if(arp_hdr->op != ARP_OP_REQUEST){
+		logErr("Frame falsely sent to ARPTable::handleRequest()");
 		return;
 	}
 

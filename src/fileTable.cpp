@@ -8,8 +8,7 @@ FileTable::FileTable(string filename) {
 	ifstream dump;
 	dump.open(filename);
 	if(!dump.is_open() || !dump.good()){
-		cout << "Opening file failed" << endl;
-		exit(0);
+		fatal("Opening file for routing table failed");
 	}
 
 	regex regex("^(\\d+\\.\\d+\\.\\d+\\.\\d+)/(\\d+)\\s+"

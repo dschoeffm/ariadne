@@ -44,8 +44,7 @@ void Manager::initNetmap(){
 			});
 
 		if(it == interfaces->end()){
-			cerr << "something went wrong: netmap interface not found in netlink context" << endl;
-			exit(0);
+			fatal("something went wrong: netmap interface not found in netlink context");
 		}
 
 		it->netmapIndex = iface_num;
@@ -97,8 +96,7 @@ void Manager::process(){
 		pfds[i].events = POLLOUT | POLLIN;
 	}
 	if(0 > poll(pfds, numInterfaces, -1)){
-		cerr << "poll() failed" << endl;
-		exit(0);
+		fatal("poll() failed");
 	}
 
 	// TODO rest

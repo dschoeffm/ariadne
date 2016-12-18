@@ -5,14 +5,16 @@ using namespace std;
 const RoutingTable::route RoutingTable::invalidRoute;
 
 void RoutingTable::print_table(){
+	stringstream stream;
 	auto entries = this->getSortedRoutes();
 	for(int len=32; len>=0; len--){
 		for(auto& a : (*entries)[len]){
-			cout << ip_to_str(a.base) << "/" << len
+			stream << ip_to_str(a.base) << "/" << len
 				<< " via " << ip_to_str(a.next_hop)
 				<< " iface " << a.interface << endl;
 		}
 	}
+	logInfo(stream.str());
 };
 
 shared_ptr<vector<vector<RoutingTable::route>>> RoutingTable::getSortedRoutes() {
@@ -23,7 +25,7 @@ void RoutingTable::aggregate() {
 	int counter = 0;
 	for(int len=30; len > 0; len--){
 #if DEBUG
-		cerr << "aggregating length " << len << endl;
+		logInfo("aggregating length " + len);
 #endif
 
 		if((*entries)[len].size() < 2){
@@ -49,7 +51,7 @@ void RoutingTable::aggregate() {
 	}
 
 #if DEBUG
-	cerr << "aggregated networks: " << counter << endl;
+	logInfo("aggregated networks: " + counter);
 #endif
 };
 

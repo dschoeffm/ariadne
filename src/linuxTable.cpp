@@ -24,13 +24,13 @@ static int data_ipv4_attr_cb(const struct nlattr *attr, void *data)
 	case RTA_GATEWAY:
 	case RTA_PRIORITY:
 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-			perror("mnl_attr_validate");
+			logErr("mnl_attr_validate");
 			return MNL_CB_ERROR;
 		}
 		break;
 	case RTA_METRICS:
 		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
-			perror("mnl_attr_validate");
+			logErr("mnl_attr_validate");
 			return MNL_CB_ERROR;
 		}
 		break;
@@ -106,19 +106,16 @@ void LinuxTable::updateInfo(){
 
 	nl = mnl_socket_open(NETLINK_ROUTE);
 	if (nl == NULL) {
-		perror("mnl_socket_open");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_open() failed");
 	}
 
 	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-		perror("mnl_socket_bind");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_bind() failed");
 	}
 	portid = mnl_socket_get_portid(nl);
 
 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-		perror("mnl_socket_sendto");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_sendto() failed");
 	}
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -129,8 +126,7 @@ void LinuxTable::updateInfo(){
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	}
 	if (ret == -1) {
-		perror("error");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_recvfrom() failed");
 	}
 
 	mnl_socket_close(nl);

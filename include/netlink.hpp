@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "interface.hpp"
+#include "util.hpp"
 
 #include <libmnl/libmnl.h>
 //#include <linux/if.h>

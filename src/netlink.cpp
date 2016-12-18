@@ -37,14 +37,14 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 		switch(type) {
 		case IFA_ADDRESS:
 			if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-				perror("mnl_attr_validate");
+				logErr("mnl_attr_validate");
 				return MNL_CB_ERROR;
 			}
 			interface.IPs.push_back(htonl(mnl_attr_get_u32(attr)));
 			break;
 		case IFA_LABEL:
 			if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
-				perror("mnl_attr_validate");
+				logErr("mnl_attr_validate");
 				return MNL_CB_ERROR;
 			}
 			interface.name = mnl_attr_get_str(attr);
@@ -107,13 +107,11 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	// Open NL socket
 	nl = mnl_socket_open(NETLINK_ROUTE);
 	if (nl == NULL) {
-		perror("mnl_socket_open");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_open() failed");
 	}
 
 	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-		perror("mnl_socket_bind");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_bind() failed");
 	}
 	portid = mnl_socket_get_portid(nl);
 
@@ -126,8 +124,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	rt->rtgen_family = AF_PACKET;
 
 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-		perror("mnl_socket_sendto");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_sendto() failed");
 	}
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -138,8 +135,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	}
 	if (ret == -1) {
-		perror("error");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_recvfrom() failed");
 	}
 
 	// do "ip l"
@@ -151,8 +147,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	rt->rtgen_family = AF_PACKET;
 
 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-		perror("mnl_socket_sendto");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_sendto");
 	}
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -163,8 +158,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	}
 	if (ret == -1) {
-		perror("error");
-		exit(EXIT_FAILURE);
+		fatal("mnl_socket_recvfrom() failed");
 	}
 
 	mnl_socket_close(nl);

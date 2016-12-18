@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <array>
 #include <stdint.h>
+#include <sstream>
 
 #include "util.hpp"
 #include "arpTable.hpp"
