@@ -54,11 +54,11 @@ void Worker::process(){
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
-				f.iface = IFACE_DISCARD;
+				f.iface = frame::IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
 				if(count(interface.IPs.begin(), interface.IPs.end(), ipv4_hdr->d_ip)){
-					f.iface |= IFACE_HOST;
+					f.iface |= frame::IFACE_HOST;
 					continue;
 				}
 
@@ -83,10 +83,10 @@ void Worker::process(){
 				f.iface = nh.interface;
 			}
 		} else if(ether_hdr->ethertype == htons(0x0806)){
-			f.iface |= IFACE_ARP;
+			f.iface |= frame::IFACE_ARP;
 		} else {
 			// This router currently doesn't support L3 Protocol $foo
-			f.iface = IFACE_DISCARD;
+			f.iface = frame::IFACE_DISCARD;
 		}
 	}
 
