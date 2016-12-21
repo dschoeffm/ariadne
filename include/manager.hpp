@@ -34,13 +34,14 @@
  */
 class Manager {
 private:
-	std::vector<Worker*> worker;
+	std::vector<Worker*> workers;
 	Ring<frame>* inRings;
 	Ring<frame>* outRings;
 	std::vector<uint32_t> freeBufs;
 	std::shared_ptr<LPM> curLPM;
 	unsigned int numWorkers;
 
+	// Last ring is host ring
 	std::vector<std::vector<netmap_ring*>> netmapRxRings;
 	std::vector<std::vector<netmap_ring*>> netmapTxRings;
 	std::vector<netmap_if*> netmapIfs;

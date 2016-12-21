@@ -8,7 +8,7 @@ void Manager::initNetmap(){
 	nmreq_root.nr_rx_slots = 2048;
 	nmreq_root.nr_tx_rings = numWorkers;
 	nmreq_root.nr_rx_rings = numWorkers;
-	nmreq_root.nr_ringid = NR_REG_ALL_NIC | NETMAP_DO_RX_POLL;
+	nmreq_root.nr_ringid = NR_REG_NIC_SW | NETMAP_DO_RX_POLL;
 	nmreq_root.nr_cmd = 0;
 	nmreq_root.nr_arg1 = 0;
 	nmreq_root.nr_arg2 = 1;
@@ -84,20 +84,82 @@ std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
 
 void Manager::startWorkerThreads(){
 	for(unsigned i=0; numWorkers; i++){
-		worker.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
+		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
 			inRings[i], outRings[i], interfaces));
 	}
 };
 
 void Manager::process(){
+	// Prepare poll fd set
 	pollfd* pfds = new pollfd[numInterfaces];
 	for(unsigned int i=0; i<numInterfaces; i++){
 		pfds[i].fd = fds[i];
 		pfds[i].events = POLLOUT | POLLIN;
 	}
+	// use poll to get new frames
 	if(0 > poll(pfds, numInterfaces, -1)){
 		fatal("poll() failed");
 	}
 
-	// TODO rest
+	// Run over all interfaces and rings -> enqueue new frames for workers
+	for(unsigned int iface=0; iface < numInterfaces; iface++){
+		// numWorkers+1 for host ring
+		for(unsigned int worker=0; worker < numWorkers+1; worker++){
+			netmap_ring* ring = netmapRxRings[iface][worker];
+			uint32_t numFrames = nm_ring_space(ring);
+			numFrames = min(numFrames, (uint32_t) freeBufs.size());
+			vector<frame> frames;
+			uint32_t slotIdx = ring->head;
+
+			for(uint32_t frame=0; frame < numFrames; frame++){
+				frames.emplace_back(
+						NETMAP_BUF(ring, slotIdx),
+						ring->slot[slotIdx].len,
+						iface,
+						0);
+				ring->slot[slotIdx].buf_idx = freeBufs.back();
+				freeBufs.pop_back();
+				slotIdx = nm_ring_next(ring, slotIdx);
+				ring->head = slotIdx;
+				ring->cur = slotIdx;
+			}
+
+			inRings[iface].push(frames);
+		}
+	}
+
+	// Run over all frames processed by the workers and enqueue to netmap
+	for(unsigned int worker=0; worker < numWorkers; worker++){
+		vector<frame> frames;
+		outRings[worker].pop(frames);
+		for(frame& frame : frames){
+			// Check for discard/host/arp flag
+			if(frame.iface & frame::IFACE_DISCARD){
+				// Just reclaim buffer
+				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
+				continue;
+			}
+
+			unsigned int ringid;
+			if(frame.iface & frame::IFACE_HOST){
+				ringid = numWorkers;
+			} else if(frame.iface & frame::IFACE_ARP){
+				ringid = numWorkers;
+				arpTable.handleFrame(frame);
+			} else {
+				ringid = worker;
+			}
+
+			uint16_t iface = frame.iface & frame::IFACE_ID;
+			netmap_ring* ring = netmapTxRings[iface][ringid];
+			uint32_t slotIdx = ring->head;
+			freeBufs.push_back(ring->slot[slotIdx].buf_idx);
+			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
+			ring->head = nm_ring_next(ring, ring->head);
+			ring->cur = ring->head;
+
+		}
+	}
+
+
 }

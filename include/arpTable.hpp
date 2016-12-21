@@ -114,6 +114,13 @@ public:
 	 * \param frame the frame holding the ARP Request
 	 */
 	void handleRequest(frame& frame);
+
+	/*! Handle an ARP frame.
+	 * This is a wrapper around handleReply and handleResponse.
+	 *
+	 * \param frame the ARP frame
+	 */
+	void handleFrame(frame& frame);
 };
 
 #endif /* ARPTABLE_HPP */
