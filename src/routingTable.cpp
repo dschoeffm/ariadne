@@ -62,7 +62,7 @@ void RoutingTable::buildNextHopList(){
 		for(auto r : a){
 
 			if(r.next_hop == 0){
-				r.index = NH_DIRECTLY_CONNECTED;
+				r.index = route::NH_DIRECTLY_CONNECTED;
 			}
 
 			auto it = find(nextHopMapping->begin(), nextHopMapping->end(), r.next_hop);

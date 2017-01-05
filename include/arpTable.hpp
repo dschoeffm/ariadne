@@ -28,6 +28,15 @@ public:
 	struct nextHop {
 		std::array<uint8_t,6> mac {{0}}; //!< MAC address
 		uint16_t interface = uint16_t_max; //!< interface number
+
+		static constexpr std::array<uint8_t,6> invalidMac  = {{0}};
+		operator bool(){
+			if(mac ==  invalidMac || interface == uint16_t_max){
+				return false;
+			} else{
+				return true;
+			}
+		}
 	};
 
 	/*! ARP table corresponding to one routing table.

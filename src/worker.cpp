@@ -71,7 +71,7 @@ void Worker::process(){
 
 				// Look up the next hop
 				ARPTable::nextHop nh;
-				if(index != NH_DIRECTLY_CONNECTED){
+				if(index != RoutingTable::route::NH_DIRECTLY_CONNECTED){
 					nh = cur_arp_table->nextHops[index];
 				} else {
 					nh = cur_arp_table->directlyConnected.at(ntohl(ipv4_hdr->d_ip));

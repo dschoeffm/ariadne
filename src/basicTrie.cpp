@@ -4,7 +4,7 @@ using namespace std;
 
 BasicTrie::Internal::Internal(
 	Internal* left, Internal* right, Internal* parent) :
-	left(left), right(right), parent(parent), leaf(NH_INVALID) {};
+	left(left), right(right), parent(parent), leaf(RoutingTable::route::NH_INVALID) {};
 
 void BasicTrie::buildTrie() {
 	// Allocate root node
@@ -48,7 +48,7 @@ nh_index BasicTrie::route(uint32_t addr) const {
 	// Traverse downwards
 	while(next){
 		cur = next;
-		if(cur->leaf != NH_INVALID){
+		if(cur->leaf != RoutingTable::route::NH_INVALID){
 			lastLeaf = cur->leaf;
 		}
 		bit = extractBit(addr, ++pos);
