@@ -65,17 +65,17 @@ public:
 	static const route invalidRoute; //!< invalid Route
 
 protected:
-	/*! All of the routing information is contained here
+	/*! All of the routing information is contained here.
 	 */
 	std::shared_ptr<std::vector<std::vector<route>>>
 		entries = std::make_shared<std::vector<std::vector<route>>>();
 
-	/*! Mapping from next hop index to IPv4 addresses
+	/*! Mapping from next hop index to IPv4 addresses.
 	 */
 	std::shared_ptr<std::vector<uint32_t>>
 		nextHopMapping = std::make_shared<std::vector<uint32_t>>();
 
-	/*! Update the underlying routing infomation
+	/*! Update the underlying routing infomation.
 	 * Implementation is up to the child class
 	 */
 	virtual void updateInfo() {};
@@ -91,7 +91,7 @@ public:
 	 */
 	void print_table();
 
-	/*! Get the routes currently held inside the routing table
+	/*! Get the routes currently held inside the routing table.
 	 * \return routes sorted by prefix length (first index), and base address
 	 */
 	std::shared_ptr<std::vector<std::vector<route>>> getSortedRoutes();
@@ -104,13 +104,13 @@ public:
 		return nextHopMapping;
 	};
 
-	/*! Get the set of used interfaces
+	/*! Get the set of used interfaces.
 	 * Return the set of used interface
 	 * \return set of interfaces
 	 */
 	std::unordered_set<uint16_t> getInterfaceSet();
 
-	/*! Update the routing information
+	/*! Update the routing information.
 	 * This function updates the routing information and preprocesses it for further usage.
 	 */
 	void update(){
