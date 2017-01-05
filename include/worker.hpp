@@ -7,6 +7,10 @@
 #include <queue>
 #include <stdint.h>
 #include <string.h>
+#include <ctime>
+#include <ratio>
+#include <chrono>
+
 #include "basicTrie.hpp"
 #include "ring.hpp"
 #include "routingTable.hpp"
@@ -34,7 +38,14 @@ private:
 	// Rings for frame transfer
 	Ring<frame>& ingressQ;
 	Ring<frame>& egressQ;
-	//Ring<frame>& hostQ;
+
+	// Backlog frames with ARP problems
+	struct backlogFrame {
+		frame frame;
+		nh_index nh;
+		std::chrono::steady_clock::time_point timeout;
+	};
+	std::vector<backlogFrame> backlog;
 
 	// Interfaces to be used
 	std::shared_ptr<std::vector<interface>> interfaces;
