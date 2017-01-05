@@ -81,8 +81,13 @@ void Worker::process(){
 
 				// Is the next hop valid?
 				if(!nh){
-					std::chrono::seconds oneSecond(1);
-					backlog.emplace_back(backlogFrame {f, index, now + oneSecond});
+					if(backlog.size() < WORKER_MAX_BACKLOG){
+						std::chrono::milliseconds waitTime(ARP_WAIT_MILLIS);
+						backlog.emplace_back(backlogFrame {f, index, now + waitTime});
+					} else {
+						f.iface = frame::IFACE_DISCARD;
+						batchOut.push_back(f);
+					}
 					continue;
 				}
 
