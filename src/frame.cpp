@@ -20,14 +20,14 @@ static uint16_t ipv4_hash(uint8_t* addr){
 	res |= rotl(ipv4->proto, MAGIC_3);
 
 	switch(ipv4->proto){
-		case IPv4_PROTO_ICMP:
-			res |= icmp_hash(addr + IPv4_IHL(ipv4)*4);
+		case ipv4::PROTO_ICMP:
+			res |= icmp_hash(addr + ipv4->ihl()*4);
 			break;
-		case IPv4_PROTO_TCP:
-			res |= tcp_hash(addr + IPv4_IHL(ipv4)*4);
+		case ipv4::PROTO_TCP:
+			res |= tcp_hash(addr + ipv4->ihl()*4);
 		break;
-		case IPv4_PROTO_UDP:
-			res |= udp_hash(addr + IPv4_IHL(ipv4)*4);
+		case ipv4::PROTO_UDP:
+			res |= udp_hash(addr + ipv4->ihl()*4);
 		break;
 	}
 

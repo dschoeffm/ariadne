@@ -15,17 +15,17 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 	}
 
 	// Step 3
-	if(IPv4_VERSION(ipv4_hdr) != 4){
+	if(ipv4_hdr->version() != 4){
 		return false;
 	}
 
 	// Step 4
-	if(IPv4_IHL(ipv4_hdr) < 5){
+	if(ipv4_hdr->ihl() < 5){
 		return false;
 	}
 
 	// Step 5
-	if(ntohs(ipv4_hdr->total_length) < (IPv4_IHL(ipv4_hdr)*4)){
+	if(ntohs(ipv4_hdr->total_length) < ipv4_hdr->ihl()*4){
 		return false;
 	}
 

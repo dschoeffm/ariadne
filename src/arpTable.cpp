@@ -3,6 +3,8 @@
 using namespace std;
 using namespace headers;
 
+const array<uint8_t, 6> ARPTable::nextHop::invalidMac;
+
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	// create a new table;
 	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
@@ -34,7 +36,7 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t interface, frame& frame){
 	arp_hdr->proto_type = htons(0x0800);
 	arp_hdr->hw_len = 6;
 	arp_hdr->proto_len = 4;
-	arp_hdr->op = ARP_OP_REQUEST;
+	arp_hdr->op = arp::OP_REQUEST;
 
 	arp_hdr->s_hw_addr = interfaces->at(interface).mac;
 	if(interfaces->at(interface).IPs.empty()){
@@ -59,7 +61,7 @@ void ARPTable::handleReply(frame& frame){
 		return;
 	}
 
-	if(arp_hdr->op != ARP_OP_REPLY){
+	if(arp_hdr->op != arp::OP_REPLY){
 		// This is not a reply
 		logErr("Frame falsely sent to ARPTable::handleReply()");
 		return;
@@ -94,7 +96,7 @@ void ARPTable::handleRequest(frame& frame){
 		return;
 	}
 
-	if(arp_hdr->op != ARP_OP_REQUEST){
+	if(arp_hdr->op != arp::OP_REQUEST){
 		logErr("Frame falsely sent to ARPTable::handleRequest()");
 		return;
 	}
@@ -107,7 +109,7 @@ void ARPTable::handleRequest(frame& frame){
 	}
 
 	// Turn the request into a reply
-	arp_hdr->op = ARP_OP_REPLY;
+	arp_hdr->op = arp::OP_REPLY;
 
 	arp_hdr->t_hw_addr = arp_hdr->s_hw_addr;
 	uint32_t t_ip = arp_hdr->t_proto_addr;
@@ -118,4 +120,22 @@ void ARPTable::handleRequest(frame& frame){
 
 	ether_hdr->s_mac = interface.mac;
 	ether_hdr->d_mac = {{0xff}};
+}
+
+void ARPTable::handleFrame(frame& frame){
+	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
+	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
+
+	if(ether_hdr->ethertype != htons(0x0806)){
+		logErr("Frame falsely sent to ARPTable::handleFrame()");
+		return;
+	}
+
+	if(arp_hdr->op == arp::OP_REQUEST){
+		handleRequest(frame);
+	} else if(arp_hdr->op == arp::OP_REPLY){
+		handleReply(frame);
+	} else {
+		logErr("Unknown ARP OP detected");
+	}
 }

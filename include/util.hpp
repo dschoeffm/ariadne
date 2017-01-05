@@ -61,7 +61,7 @@ inline uint16_t IPv4HdrChecksum(headers::ipv4* header){
 
 	uint16_t orig_checksum = header->checksum;
 	header->checksum = 0;
-	for(uint8_t i=0; i<(IPv4_IHL(header)*2); i++){
+	for(uint8_t i=0; i<(header->ihl() *2); i++){
 		result += ~(hdr_cast[i]);
 	}
 
