@@ -77,6 +77,11 @@ public:
 		interfacesToUse(interfacesToUse),
 		arpTable(interfaces) {};
 
+	/*! Return the ARP table used by this manager */
+	ARPTable& getARPTable(){
+		return arpTable;
+	}
+
 	/*! Start the router.
 	 * This function enters the main action loop
 	 */

@@ -12,6 +12,7 @@
 #include "frame.hpp"
 #include "headers.hpp"
 #include "interface.hpp"
+#include "spinLock.hpp"
 
 // Forward declaration
 // circular dependencies...
@@ -53,6 +54,19 @@ public:
 			: nextHops(nextHops), directlyConnected(directlyConnected){};
 	};
 
+	/*! Request for a new ARP request */
+	struct request {
+		uint32_t ip; //!< IP of the destination
+		uint16_t interface; //!< interface of the destination
+		bool operator==(const request& req) const{
+			if(req.ip == ip && req.interface == interface){
+				return true;
+			} else {
+				return false;
+			}
+		}
+	};
+
 private:
 
 	// Current routing table
@@ -72,6 +86,10 @@ private:
 
 	// Interfaces by OS index
 	std::shared_ptr<std::vector<interface>> interfaces;
+
+	// Stuff to enqueue requests for ARP requests from workers
+	SpinLock lock;
+	std::vector<request> workerRequest;
 
 public:
 	/*! Create new empty ARP table.
@@ -99,15 +117,42 @@ public:
 		return currentTable;
 	};
 
+	/*! Add a new request for an ARP request to another node.
+	 * This function is thread safe.
+	 * \param req Defines which node to query for
+	 */
+	void addRequest(request req){
+		lock.lock();
+		if(!count(workerRequest.begin(), workerRequest.end(), req)){
+			workerRequest.push_back(req);
+		}
+		lock.release();
+	};
+
+	/*! Get one request from the queue (added by addRequest()).
+	 * This function is thread safe.
+	 * \param req this is swapped with an internal vector
+	 * \return 0: request written, 1: no request was present
+	 */
+	int getRequests(std::vector<request>& req){
+		lock.lock();
+		if(workerRequest.empty()){
+			return 1;
+		}
+		swap(req, workerRequest);
+		workerRequest.clear();
+		lock.release();
+		return 0;
+	};
+
 	/*! Prepare a ARP request.
 	 * An ARP request is prepared for the given IPv4 address
 	 * The ethernet header is set accordingly.
 	 *
-	 * \param ip IPv4 address
-	 * \param interface interface to prepare request for
+	 * \param request request for which to query
 	 * \param frame frame to write the request in
 	 */
-	void prepareRequest(uint32_t ip, uint16_t interface, frame& frame);
+	void prepareRequest(request req, frame& frame);
 
 	/*! Handle an ARP Reply.
 	 * This function updates the internal state of the current ARP table

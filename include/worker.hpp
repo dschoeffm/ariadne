@@ -54,7 +54,10 @@ private:
 	std::shared_ptr<std::vector<interface>> interfaces;
 
 	// Manager responsible for this worker
-	Manager* manager;
+	Manager& manager;
+
+	// ARP table, used to enqueue MAC requests
+	ARPTable& arpTable;
 
 	// The thread this one worker works in
 	std::thread thread;
@@ -91,9 +94,11 @@ public:
 		Ring<frame>& ingressQ,
 		Ring<frame>& egressQ,
 		std::shared_ptr<std::vector<interface>> interfaces,
-		Manager* manager)
+		Manager& manager,
+		ARPTable& arpTable)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
-		interfaces(interfaces), manager(manager), thread(&Worker::run, this), state(RUN) {};
+		interfaces(interfaces), manager(manager), arpTable(arpTable),
+		thread(&Worker::run, this), state(RUN) {};
 
 	/*! Update Worker.
 	 * This function updates the worker thread with new information

@@ -25,11 +25,11 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	currentTable = newTable;
 }
 
-void ARPTable::prepareRequest(uint32_t ip, uint16_t interface, frame& frame){
+void ARPTable::prepareRequest(request req, frame& frame){
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
-	ether_hdr->s_mac = interfaces->at(interface).mac;
+	ether_hdr->s_mac = interfaces->at(req.interface).mac;
 	ether_hdr->d_mac = {{0xff}};
 
 	arp_hdr->hw_type = htons(0x0001);
@@ -38,13 +38,13 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t interface, frame& frame){
 	arp_hdr->proto_len = 4;
 	arp_hdr->op = arp::OP_REQUEST;
 
-	arp_hdr->s_hw_addr = interfaces->at(interface).mac;
-	if(interfaces->at(interface).IPs.empty()){
+	arp_hdr->s_hw_addr = interfaces->at(req.interface).mac;
+	if(interfaces->at(req.interface).IPs.empty()){
 		fatal("Cannot send ARP request without an IP address on interface");
 	}
-	arp_hdr->s_proto_addr = interfaces->at(interface).IPs.front();
+	arp_hdr->s_proto_addr = interfaces->at(req.interface).IPs.front();
 	arp_hdr->t_hw_addr = {{0}};
-	arp_hdr->t_proto_addr = htonl(ip);
+	arp_hdr->t_proto_addr = htonl(req.ip);
 
 	frame.len = sizeof(ether) + sizeof(arp);
 }

@@ -84,6 +84,7 @@ void Worker::process(){
 					if(backlog.size() < WORKER_MAX_BACKLOG){
 						std::chrono::milliseconds waitTime(ARP_WAIT_MILLIS);
 						backlog.emplace_back(backlogFrame {f, index, now + waitTime});
+						arpTable.addRequest(ARPTable::request {ipv4_hdr->d_ip, f.iface});
 					} else {
 						f.iface = frame::IFACE_DISCARD;
 						batchOut.push_back(f);

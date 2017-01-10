@@ -85,7 +85,7 @@ std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
 void Manager::startWorkerThreads(){
 	for(unsigned i=0; numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
-			inRings[i], outRings[i], interfaces, this));
+			inRings[i], outRings[i], interfaces, *this, arpTable));
 	}
 };
 
@@ -125,6 +125,19 @@ void Manager::process(){
 			}
 
 			inRings[iface].push(frames);
+		}
+	}
+
+	// Run over all current MAC requests
+	vector<ARPTable::request> requests;
+	arpTable.getRequests(requests);
+	for(auto req : requests){
+		netmap_ring* ring = netmapRxRings[req.interface][0];
+		if(nm_ring_space(ring)){
+			frame f(NETMAP_BUF(ring, ring->head), 0, req.interface);
+			arpTable.prepareRequest(req, f);
+			ring->head = nm_ring_next(ring, ring->head);
+			ring->cur = ring->head;
 		}
 	}
 
