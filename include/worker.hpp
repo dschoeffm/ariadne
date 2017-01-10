@@ -11,12 +11,15 @@
 #include <ratio>
 #include <chrono>
 
+class Worker;
+
 #include "basicTrie.hpp"
 #include "ring.hpp"
 #include "routingTable.hpp"
 #include "arpTable.hpp"
 #include "headers.hpp"
 #include "util.hpp"
+#include "manager.hpp"
 
 #include "config.hpp"
 
@@ -50,6 +53,9 @@ private:
 	// Interfaces to be used
 	std::shared_ptr<std::vector<interface>> interfaces;
 
+	// Manager responsible for this worker
+	Manager* manager;
+
 	// The thread this one worker works in
 	std::thread thread;
 
@@ -77,15 +83,17 @@ public:
 	 * \param ingressQ Input ring of new packets
 	 * \param egressQ Output ring of processed packets
 	 * \param interfaces Interfaces of the router
+	 * \param manager Manager responsible for this worker
 	 */
 	Worker(
 		std::shared_ptr<LPM> cur_lpm,
 		std::shared_ptr<ARPTable::table> cur_arp_table,
 		Ring<frame>& ingressQ,
 		Ring<frame>& egressQ,
-		std::shared_ptr<std::vector<interface>> interfaces)
+		std::shared_ptr<std::vector<interface>> interfaces,
+		Manager* manager)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
-		interfaces(interfaces), thread(&Worker::run, this), state(RUN) {};
+		interfaces(interfaces), manager(manager), thread(&Worker::run, this), state(RUN) {};
 
 	/*! Update Worker.
 	 * This function updates the worker thread with new information

@@ -9,6 +9,8 @@
 #include <array>
 #include <algorithm>
 
+class Manager;
+
 #include "ring.hpp"
 #include "worker.hpp"
 #include "routingTable.hpp"
@@ -53,7 +55,7 @@ private:
 	std::vector<std::string> interfacesToUse;
 	std::shared_ptr<std::vector<interface>> interfaces = fillNetLink();
 
-	shared_ptr<RoutingTable> routingTable;
+	std::shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
 
 	enum enum_state {RUN, STOP};
@@ -71,7 +73,7 @@ public:
 	 * Nothing big really
 	 */
 	Manager(std::vector<std::string> interfacesToUse) :
-		numWorkers(thread::hardware_concurrency()-1),
+		numWorkers(std::thread::hardware_concurrency()-1),
 		interfacesToUse(interfacesToUse),
 		arpTable(interfaces) {};
 

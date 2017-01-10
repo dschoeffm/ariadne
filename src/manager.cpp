@@ -85,7 +85,7 @@ std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
 void Manager::startWorkerThreads(){
 	for(unsigned i=0; numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
-			inRings[i], outRings[i], interfaces));
+			inRings[i], outRings[i], interfaces, this));
 	}
 };
 
