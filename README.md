@@ -64,6 +64,8 @@ working directory clean. Therefore a new directory is created, cmake
 generates the Makefile, which in turn compile the router application.
 
 ~~~{.sh}
+git submodule init
+git submodule update
 mkdir build
 cd build
 cmake ..
