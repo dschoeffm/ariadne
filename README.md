@@ -42,7 +42,7 @@ In order to compile Ariadne, some dependencies need to be installed:
 * libmnl >= 1.0.3
 * cmake
 * make
-* netmap (header are sufficient for compilation)
+* netmap (headers are sufficient for compilation)
 * a POSIX-compliant system
 * C++11 ready STL-library
 
