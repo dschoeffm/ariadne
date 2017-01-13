@@ -26,7 +26,7 @@ public:
 
 	/*! Relase the Spinlock
 	 */
-	void release(){
+	void unlock(){
 		lock_var.clear(std::memory_order_release); // release lock
 	};
 };

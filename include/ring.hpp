@@ -2,6 +2,7 @@
 #define RING_HPP
 
 #include <vector>
+#include <mutex>
 #include "string.h"
 #include "spinLock.hpp"
 
@@ -31,7 +32,7 @@ public:
 	 * \return number of elements which were actually pushed
 	 */
 	unsigned int push(std::vector<T>& in){
-		lock.lock();
+		std::lock_guard<SpinLock> guard(lock);
 
 		unsigned int count = in.size();
 		if(count > (RING_SIZE - size())){
@@ -46,7 +47,6 @@ public:
 		head += count;
 		head %= RING_SIZE;
 
-		lock.release();
 		return count;
 	};
 
@@ -58,7 +58,7 @@ public:
 	 * \return actual number of elements which were poped from the ring
 	 */
 	unsigned int pop(std::vector<T>& out, unsigned int count){
-		lock.lock();
+		std::lock_guard<SpinLock> guard(lock);
 		if(count > size()){
 			count = size();
 		}
@@ -72,7 +72,6 @@ public:
 		tail += count;
 		tail %= RING_SIZE;
 
-		lock.release();
 		return count;
 	}
 
@@ -83,7 +82,7 @@ public:
 	 * \return number of elements which were poped from the ring
 	 */
 	unsigned int pop(std::vector<T>& out){
-		lock.lock();
+		std::lock_guard<SpinLock> guard(lock);
 		unsigned int count = size();
 		out.resize(count);
 
@@ -95,7 +94,6 @@ public:
 		tail += count;
 		tail %= RING_SIZE;
 
-		lock.release();
 		return count;
 	}
 

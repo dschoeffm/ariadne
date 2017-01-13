@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <unordered_map>
 #include <array>
+#include <mutex>
 
 #include "util.hpp"
 #include "routingTable.hpp"
@@ -122,11 +123,10 @@ public:
 	 * \param req Defines which node to query for
 	 */
 	void addRequest(request req){
-		lock.lock();
+		std::lock_guard<SpinLock> guard(lock);
 		if(!count(workerRequest.begin(), workerRequest.end(), req)){
 			workerRequest.push_back(req);
 		}
-		lock.release();
 	};
 
 	/*! Get one request from the queue (added by addRequest()).
@@ -135,13 +135,12 @@ public:
 	 * \return 0: request written, 1: no request was present
 	 */
 	int getRequests(std::vector<request>& req){
-		lock.lock();
+		std::lock_guard<SpinLock> guard(lock);
 		if(workerRequest.empty()){
 			return 1;
 		}
 		swap(req, workerRequest);
 		workerRequest.clear();
-		lock.release();
 		return 0;
 	};
 
