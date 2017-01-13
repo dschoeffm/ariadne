@@ -1,6 +1,6 @@
 [submodule "concurrentqueue"]
-	path = concurrentqueue
+	path = submodules/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
 [submodule "readerwriterqueue"]
-	path = readerwriterqueue
+	path = submodules/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
