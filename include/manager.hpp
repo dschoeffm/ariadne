@@ -11,7 +11,8 @@
 
 class Manager;
 
-#include "ring.hpp"
+#include "readerwriterqueue.h"
+#include "config.hpp"
 #include "worker.hpp"
 #include "routingTable.hpp"
 #include "arpTable.hpp"
@@ -37,8 +38,8 @@ class Manager;
 class Manager {
 private:
 	std::vector<Worker*> workers;
-	Ring<frame>* inRings;
-	Ring<frame>* outRings;
+	std::vector<std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>>> inRings;
+	std::vector<std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>>> outRings;
 	std::vector<uint32_t> freeBufs;
 	std::shared_ptr<LPM> curLPM;
 	unsigned int numWorkers;

@@ -13,15 +13,15 @@
 
 class Worker;
 
+#include "config.hpp"
+
+#include "readerwriterqueue.h"
 #include "basicTrie.hpp"
-#include "ring.hpp"
 #include "routingTable.hpp"
 #include "arpTable.hpp"
 #include "headers.hpp"
 #include "util.hpp"
 #include "manager.hpp"
-
-#include "config.hpp"
 
 using namespace std;
 
@@ -39,16 +39,8 @@ private:
 	std::shared_ptr<ARPTable::table> new_arp_table;
 
 	// Rings for frame transfer
-	Ring<frame>& ingressQ;
-	Ring<frame>& egressQ;
-
-	// Backlog frames with ARP problems
-	struct backlogFrame {
-		frame frame;
-		nh_index nh;
-		std::chrono::steady_clock::time_point timeout;
-	};
-	std::vector<backlogFrame> backlog;
+	std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> ingressQ;
+	std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> egressQ;
 
 	// Interfaces to be used
 	std::shared_ptr<std::vector<interface>> interfaces;
@@ -91,8 +83,8 @@ public:
 	Worker(
 		std::shared_ptr<LPM> cur_lpm,
 		std::shared_ptr<ARPTable::table> cur_arp_table,
-		Ring<frame>& ingressQ,
-		Ring<frame>& egressQ,
+		std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> ingressQ,
+		std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> egressQ,
 		std::shared_ptr<std::vector<interface>> interfaces,
 		Manager& manager,
 		ARPTable& arpTable)

@@ -1,6 +1,8 @@
 #ifndef RING_HPP
 #define RING_HPP
 
+#if 0
+
 #include <vector>
 #include <mutex>
 #include "string.h"
@@ -114,5 +116,7 @@ public:
 		return true;
 	};
 };
+
+#endif
 
 #endif /* RING_HPP */

@@ -41,14 +41,12 @@ void Worker::process(){
 	// TODO
 	// ICMP STUFF
 
-	// Get frames
-	vector<frame> batchIn;
-	vector<frame> batchOut;
-	ingressQ.pop(batchIn);
-	auto now = std::chrono::steady_clock::now();
+	frame f;
+	while(1){
+		if(!ingressQ->wait_dequeue_timed(f, std::chrono::milliseconds(100))){
+			return;
+		}
 
-	// First version, not very efficient
-	for(frame f : batchIn){
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
@@ -81,22 +79,15 @@ void Worker::process(){
 
 				// Is the next hop valid?
 				if(!nh){
-					if(backlog.size() < WORKER_MAX_BACKLOG){
-						std::chrono::milliseconds waitTime(ARP_WAIT_MILLIS);
-						backlog.emplace_back(backlogFrame {f, index, now + waitTime});
-						arpTable.addRequest(ARPTable::request {ipv4_hdr->d_ip, f.iface});
-					} else {
-						f.iface = frame::IFACE_DISCARD;
-						batchOut.push_back(f);
-					}
-					continue;
+					// Just discard the frame
+					f.iface = frame::IFACE_DISCARD;
+				} else {
+					// Set MAC addresses
+					ether_hdr->d_mac = nh.mac;
+					ether_hdr->s_mac = interface.mac;
+					f.iface = nh.interface;
 				}
-
-				// Set MAC addresses
-				ether_hdr->d_mac = nh.mac;
-				ether_hdr->s_mac = interface.mac;
-				f.iface = nh.interface;
-				batchOut.push_back(f);
+				egressQ->try_enqueue(f);
 			}
 		} else if(ether_hdr->ethertype == htons(0x0806)){
 			f.iface |= frame::IFACE_ARP;
@@ -105,39 +96,4 @@ void Worker::process(){
 			f.iface = frame::IFACE_DISCARD;
 		}
 	}
-
-	vector<backlogFrame> newBacklog;
-	for(auto blf : backlog){
-		if(blf.timeout <= now){
-			blf.frame.iface = frame::IFACE_DISCARD;
-			continue;
-		}
-
-		ether* ether_hdr = reinterpret_cast<ether*>(blf.frame.buf_ptr);
-		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(blf.frame.buf_ptr + sizeof(ether));
-		interface& interface = interfaces->at(blf.frame.iface);
-
-		ARPTable::nextHop nh;
-		if(blf.nh != RoutingTable::route::NH_DIRECTLY_CONNECTED){
-			nh = cur_arp_table->nextHops[blf.nh];
-		} else {
-			nh = cur_arp_table->directlyConnected.at(ntohl(ipv4_hdr->d_ip));
-		}
-
-		// Is the next hop valid?
-		if(!nh){
-			newBacklog.push_back(blf);
-			continue;
-		}
-
-		// Set MAC addresses
-		ether_hdr->d_mac = nh.mac;
-		ether_hdr->s_mac = interface.mac;
-		blf.frame.iface = nh.interface;
-		batchOut.push_back(blf.frame);
-	}
-
-	swap(backlog, newBacklog);
-
-	egressQ.push(batchOut);
 };

@@ -1,6 +1,7 @@
 #include "manager.hpp"
 
 using namespace std;
+using namespace moodycamel;
 
 void Manager::initNetmap(){
 	nmreq_root.nr_version = NETMAP_API;
@@ -52,8 +53,12 @@ void Manager::initNetmap(){
 		iface_num++;
 	}
 
-	inRings = new Ring<frame> [numWorkers];
-	outRings = new Ring<frame> [numWorkers];
+	// inRings = new BlockingReaderWriterQueue<frame> [numWorkers];
+	// outRings = new BlockingReaderWriterQueue<frame> [numWorkers];
+	for(unsigned int i=0; i<numWorkers; i++){
+		inRings.emplace_back(make_shared<BlockingReaderWriterQueue<frame>>(RING_SIZE));
+		outRings.emplace_back(make_shared<BlockingReaderWriterQueue<frame>>(RING_SIZE));
+	}
 
 	routingTable = make_shared<LinuxTable>();
 	curLPM = make_shared<LPM>(*(routingTable.get()));
@@ -102,29 +107,27 @@ void Manager::process(){
 	}
 
 	// Run over all interfaces and rings -> enqueue new frames for workers
-	for(unsigned int iface=0; iface < numInterfaces; iface++){
+	for(uint16_t iface=0; iface < numInterfaces; iface++){
 		// numWorkers+1 for host ring
 		for(unsigned int worker=0; worker < numWorkers+1; worker++){
 			netmap_ring* ring = netmapRxRings[iface][worker];
 			uint32_t numFrames = nm_ring_space(ring);
 			numFrames = min(numFrames, (uint32_t) freeBufs.size());
-			vector<frame> frames;
 			uint32_t slotIdx = ring->head;
 
 			for(uint32_t frame=0; frame < numFrames; frame++){
-				frames.emplace_back(
+				inRings[iface]->try_enqueue({
 						NETMAP_BUF(ring, slotIdx),
 						ring->slot[slotIdx].len,
 						iface,
-						0);
+						0});
+
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
 				freeBufs.pop_back();
 				slotIdx = nm_ring_next(ring, slotIdx);
 				ring->head = slotIdx;
 				ring->cur = slotIdx;
 			}
-
-			inRings[iface].push(frames);
 		}
 	}
 
@@ -143,9 +146,8 @@ void Manager::process(){
 
 	// Run over all frames processed by the workers and enqueue to netmap
 	for(unsigned int worker=0; worker < numWorkers; worker++){
-		vector<frame> frames;
-		outRings[worker].pop(frames);
-		for(frame& frame : frames){
+		frame frame;
+		while(outRings[worker]->try_dequeue(frame)){
 			// Check for discard/host/arp flag
 			if(frame.iface & frame::IFACE_DISCARD){
 				// Just reclaim buffer
