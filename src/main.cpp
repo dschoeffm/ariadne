@@ -24,7 +24,7 @@
 using namespace std;
 
 void print_usage(string name) {
-	logInfo("Usage: " + name + "list-of-interfaces");
+	logInfo("Usage: " + name + " <list-of-interfaces>");
 };
 
 int main(int argc, char** argv){
