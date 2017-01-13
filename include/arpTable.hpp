@@ -25,8 +25,7 @@ class RoutingTable;
  */
 class ARPTable {
 public:
-	/*! Describes one next Hop.
-	 */
+	/*! Describes one next Hop. */
 	struct nextHop {
 		std::array<uint8_t,6> mac {{0}}; //!< MAC address
 		uint16_t interface = uint16_t_max; //!< interface number
@@ -48,8 +47,8 @@ public:
 		std::vector<nextHop> nextHops; //!< next hops, index by RT
 		std::unordered_map<uint32_t, nextHop>&
 			directlyConnected; //!< directly connected next hops, indexed by IPv4
-		/*! Constructor setting all members
-		 */
+
+		/*! Constructor setting all members */
 		table(std::vector<nextHop> nextHops,
 				std::unordered_map<uint32_t, nextHop>& directlyConnected)
 			: nextHops(nextHops), directlyConnected(directlyConnected){};
