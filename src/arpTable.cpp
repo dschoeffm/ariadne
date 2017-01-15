@@ -3,7 +3,7 @@
 using namespace std;
 using namespace headers;
 
-const array<uint8_t, 6> ARPTable::nextHop::invalidMac;
+constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	// create a new table;
