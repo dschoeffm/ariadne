@@ -163,6 +163,18 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 
 	mnl_socket_close(nl);
 
+	stringstream sstream;
+
+	sstream << "Interfaces:" << endl;
+	for(auto i : *interfaces){
+		sstream << "\tName: " << i.name << endl;
+		sstream << "\tMAC address: " << mac_to_str(i.mac) << endl;
+		sstream << "\tIP addresses:" << endl;
+		for(auto ip : i.IPs) {
+			sstream << "\t\t" << ip_to_str(ip) << endl;
+		}
+	}
+
 	return interfaces;
 }
 

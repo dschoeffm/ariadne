@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <iostream>
 #include <cstdlib>
+#include <string>
+#include <sstream>
+#include <array>
 
 #include "headers.hpp"
 
@@ -28,6 +31,15 @@ inline std::string ip_to_str(uint32_t ip){
 	in_addr.s_addr = htonl(ip);
 	std::string str(inet_ntoa(in_addr));
 	return str;
+}
+
+inline std::string mac_to_str(std::array<uint8_t, 6> mac){
+	std::stringstream sstream;
+	sstream << std::hex << mac[0];
+	for(int i=1; i<6; i++){
+		sstream << ":" << std::hex << mac[i];
+	}
+	return sstream.str();
 }
 
 inline uint32_t extractBit(uint32_t addr, int pos) {
