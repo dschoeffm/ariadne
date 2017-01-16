@@ -36,15 +36,15 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 
 		switch(type) {
 		case IFA_ADDRESS:
-			if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-				logErr("mnl_attr_validate");
+			if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0) {
+				logErr("mnl_attr_validate() failed");
 				return MNL_CB_ERROR;
 			}
 			interface.IPs.push_back(htonl(mnl_attr_get_u32(attr)));
 			break;
 		case IFA_LABEL:
 			if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
-				logErr("mnl_attr_validate");
+				logErr("mnl_attr_validate() failed");
 				return MNL_CB_ERROR;
 			}
 			interface.name = mnl_attr_get_str(attr);
