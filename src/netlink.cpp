@@ -169,6 +169,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	for(auto i : *interfaces){
 		sstream << "\tName: " << i.name << endl;
 		sstream << "\tMAC address: " << mac_to_str(i.mac) << endl;
+		sstream << "\tNetlink Index: " << i.netmapIndex << endl;
 		sstream << "\tIP addresses:" << endl;
 		for(auto ip : i.IPs) {
 			sstream << "\t\t" << ip_to_str(ip) << endl;
