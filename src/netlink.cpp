@@ -175,6 +175,8 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 		}
 	}
 
+	logInfo(sstream.str());
+
 	return interfaces;
 }
 
