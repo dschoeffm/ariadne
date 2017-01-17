@@ -18,6 +18,7 @@ void Manager::initNetmap(){
 	int iface_num=0;
 
 	for(auto iface : interfacesToUse){
+		logInfo("Preparing interface " + iface);
 		int fd;
 		fds.push_back(fd = open("/dev/netmap", O_RDWR));
 		strncpy(nmreq_root.nr_name, iface.c_str(), 16);
@@ -28,6 +29,10 @@ void Manager::initNetmap(){
 		}
 		netmap_if* nifp = NETMAP_IF(mmapRegion, nmreq_root.nr_offset);
 		netmapIfs.push_back(nifp);
+
+		netmapTxRings.resize(netmapTxRings.size()+1);
+		netmapRxRings.resize(netmapTxRings.size()+1);
+
 		for(uint32_t i=0; i<nifp->ni_tx_rings; i++){
 			netmapTxRings[iface_num].push_back(NETMAP_TXRING(nifp, i));
 		}
@@ -52,6 +57,7 @@ void Manager::initNetmap(){
 
 		iface_num++;
 	}
+	logInfo("Interface preparations finished.\n");
 
 	// inRings = new BlockingReaderWriterQueue<frame> [numWorkers];
 	// outRings = new BlockingReaderWriterQueue<frame> [numWorkers];
@@ -61,6 +67,7 @@ void Manager::initNetmap(){
 	}
 
 	routingTable = make_shared<LinuxTable>();
+	routingTable->print_table();
 	curLPM = make_shared<LPM>(*(routingTable.get()));
 	numInterfaces = netmapIfs.size();
 };
