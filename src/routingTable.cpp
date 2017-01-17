@@ -6,6 +6,7 @@ const RoutingTable::route RoutingTable::invalidRoute;
 
 void RoutingTable::print_table(){
 	stringstream stream;
+	stream << "Routing Table content:" << endl;
 	auto entries = this->getSortedRoutes();
 	for(int len=32; len>=0; len--){
 		for(auto& a : (*entries)[len]){
@@ -22,11 +23,7 @@ shared_ptr<vector<vector<RoutingTable::route>>> RoutingTable::getSortedRoutes() 
 };
 
 void RoutingTable::aggregate() {
-	int counter = 0;
 	for(int len=30; len > 0; len--){
-#if DEBUG
-		logInfo("aggregating length " + len);
-#endif
 
 		if((*entries)[len].size() < 2){
 			continue;
@@ -45,14 +42,10 @@ void RoutingTable::aggregate() {
 				newRoute.next_hop = first.next_hop;
 				newRoute.prefix_length = len;
 				newRoute.interface = uint16_t_max;
-				counter++;
 			}
 		}
 	}
 
-#if DEBUG
-	logInfo("aggregated networks: " + counter);
-#endif
 };
 
 void RoutingTable::buildNextHopList(){
