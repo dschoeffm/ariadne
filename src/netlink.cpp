@@ -11,14 +11,14 @@ using namespace std;
 // https://git.netfilter.org/libmnl/plain/examples/rtnl/rtnl-link-dump3.c
 static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 {
-	struct ifaddrmsg *ifm = (struct ifaddrmsg *) mnl_nlmsg_get_payload(nlh);
+	struct ifaddrmsg *ifa = (struct ifaddrmsg *) mnl_nlmsg_get_payload(nlh);
 	struct nlattr *attr;
 	vector<interface>* interfaces = static_cast<vector<interface>*>(data);
-	uint32_t index = ifm->ifa_index;
+	uint32_t index = ifa->ifa_index;
 
 	auto it = find_if(interfaces->begin(), interfaces->end(),
 			[index](interface& i){
-				return i == index;
+				return i.netlinkIndex == index;
 			});
 
 	interface& interface =
@@ -27,7 +27,7 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 		: *it;
 	interface.netlinkIndex = index;
 
-	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifm)) {
+	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifa)) {
 		int type = mnl_attr_get_type(attr);
 
 		/* skip unsupported attribute in user-space */
@@ -66,7 +66,7 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 
 	auto it = find_if(interfaces->begin(), interfaces->end(),
 			[index](interface& i){
-				return i == index;
+				return i.netlinkIndex == index;
 			});
 
 	interface& interface =
@@ -86,6 +86,14 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 		case IFLA_ADDRESS:
 			memcpy(&interface.mac, RTA_DATA(attr), 6);
 			break;
+		case IFA_LABEL:
+			if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
+				logErr("mnl_attr_validate() failed");
+				return MNL_CB_ERROR;
+			}
+			interface.name = mnl_attr_get_str(attr);
+			break;
+
 		}
 	}
 
@@ -121,7 +129,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
 	nlh->nlmsg_seq = seq = time(NULL);
 	rt = (struct rtgenmsg *) mnl_nlmsg_put_extra_header(nlh, sizeof(struct rtgenmsg));
-	rt->rtgen_family = AF_PACKET;
+	rt->rtgen_family = AF_INET;
 
 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
 		fatal("mnl_socket_sendto() failed");
@@ -169,11 +177,12 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	for(auto i : *interfaces){
 		sstream << "\tName: " << i.name << endl;
 		sstream << "\tMAC address: " << mac_to_str(i.mac) << endl;
-		sstream << "\tNetlink Index: " << i.netmapIndex << endl;
-		sstream << "\tIP addresses:" << endl;
+		sstream << "\tNetlink Index: " << i.netlinkIndex << endl;
+		sstream << "\tIP addresses: ";
 		for(auto ip : i.IPs) {
-			sstream << "\t\t" << ip_to_str(ip) << endl;
+			sstream << ip_to_str(ip) << endl << "\t              ";
 		}
+		sstream << endl;
 	}
 
 	logInfo(sstream.str());
