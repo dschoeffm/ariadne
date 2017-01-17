@@ -34,12 +34,19 @@ inline std::string ip_to_str(uint32_t ip){
 }
 
 inline std::string mac_to_str(std::array<uint8_t, 6> mac){
+	/*
 	std::stringstream sstream;
 	sstream << std::hex << mac[0];
 	for(int i=1; i<6; i++){
 		sstream << ":" << std::hex << mac[i];
 	}
 	return sstream.str();
+	*/
+	std::array<char, 18> mac_cstr;
+	sprintf(mac_cstr.data(), "%02x:%02x:%02x:%02x:%02x:%02x",
+		mac[0], mac[1], mac[2],
+		mac[3], mac[4], mac[5]);
+	return std::string(mac_cstr.data());
 }
 
 inline uint32_t extractBit(uint32_t addr, int pos) {
