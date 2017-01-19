@@ -89,6 +89,7 @@ public:
 	void run(){
 		initNetmap();
 		startWorkerThreads();
+		state.store(RUN);
 		while(state.load() == RUN){
 			process();
 		}
