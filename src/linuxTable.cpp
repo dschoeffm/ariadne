@@ -76,6 +76,12 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 		new_route.next_hop = 0;
 	}
 
+	stringstream stream;
+	stream << "new route " << ip_to_str(new_route.base) << "/" << new_route.prefix_length
+		<< " via " << ip_to_str(new_route.next_hop)
+		<< " iface " << new_route.interface;
+	logInfo(stream.str());
+
 	(*routes)[new_route.prefix_length].push_back(new_route);
 
 	return MNL_CB_OK;
