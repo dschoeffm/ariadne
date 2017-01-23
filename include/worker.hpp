@@ -63,11 +63,15 @@ private:
 
 	// Run loop
 	void run(){
-		while(state.load() == RUN){
+		state.store(RUN);
+		enum_state state_ = state.load();
+		while(state_ == RUN){
 			process();
 			cur_lpm = new_lpm;
 			cur_arp_table = new_arp_table;
+			state_ = state.load();
 		}
+		logInfo("Worker is exiting");
 	}
 
 public:
@@ -106,6 +110,7 @@ public:
 	 * This function blocks until the worker is actually stopped (joined)
 	 */
 	void stop(){
+		logInfo("Trying to stop Worker");
 		state.store(STOP);
 		thread.join();
 	}
