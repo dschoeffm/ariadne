@@ -29,6 +29,11 @@ class Manager;
 #include <sys/mman.h>
 #include <poll.h>
 #include <signal.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <string.h>
+#include <errno.h>
+
 
 /*! Core manager class.
  * This class manages the whole router.

@@ -4,6 +4,11 @@ using namespace std;
 using namespace moodycamel;
 
 void Manager::initNetmap(){
+
+	if(geteuid() != 0){
+		fatal("You need to be root in order to use Netmap!");
+	}
+
 	nmreq_root.nr_version = NETMAP_API;
 	nmreq_root.nr_tx_slots = 2048;
 	nmreq_root.nr_rx_slots = 2048;
@@ -26,6 +31,11 @@ void Manager::initNetmap(){
 		if(!mmapRegion){
 			mmapRegion = mmap(0, nmreq_root.nr_memsize,
 					PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+			if(mmapRegion == MAP_FAILED){
+				logErr("Manager::initNetmap() mmap() failed");
+				logErr("error: " + string(strerror(errno)));
+				abort();
+			}
 		}
 		netmap_if* nifp = NETMAP_IF(mmapRegion, nmreq_root.nr_offset);
 		netmapIfs.push_back(nifp);
