@@ -14,7 +14,8 @@ void Manager::initNetmap(){
 	nmreq_root.nr_rx_slots = 2048;
 	nmreq_root.nr_tx_rings = numWorkers;
 	nmreq_root.nr_rx_rings = numWorkers;
-	nmreq_root.nr_ringid = NR_REG_NIC_SW | NETMAP_DO_RX_POLL;
+	nmreq_root.nr_ringid = 0;
+	nmreq_root.nr_flags = NR_REG_NIC_SW;
 	nmreq_root.nr_cmd = 0;
 	nmreq_root.nr_arg1 = 0;
 	nmreq_root.nr_arg2 = 1;
@@ -37,16 +38,35 @@ void Manager::initNetmap(){
 				abort();
 			}
 		}
+		if(nmreq_root.nr_tx_rings != numWorkers){
+			stringstream sstream;
+			sstream << "Could not set the correct amount of TX rings!" << endl;
+			sstream << "Present: " << nmreq_root.nr_tx_rings << endl;
+			sstream << "Expected: " << numWorkers << endl;
+			sstream << "Please use the following command" << endl;
+			sstream << "ethtool -L " << iface  <<" combined " << numWorkers << endl;
+			fatal(sstream.str());
+		}
+		if(nmreq_root.nr_rx_rings != numWorkers){
+			stringstream sstream;
+			sstream << "Could not set the correct amount of RX rings!" << endl;
+			sstream << "Present: " << nmreq_root.nr_rx_rings << endl;
+			sstream << "Expected: " << numWorkers << endl;
+			sstream << "Please use the following command" << endl;
+			sstream << "ethtool -L " << iface  <<" combined " << numWorkers << endl;
+			fatal(sstream.str());
+		}
+
 		netmap_if* nifp = NETMAP_IF(mmapRegion, nmreq_root.nr_offset);
 		netmapIfs.push_back(nifp);
 
 		netmapTxRings.resize(netmapTxRings.size()+1);
-		netmapRxRings.resize(netmapTxRings.size()+1);
+		netmapRxRings.resize(netmapRxRings.size()+1);
 
-		for(uint32_t i=0; i<nifp->ni_tx_rings; i++){
+		for(uint32_t i=0; i<nifp->ni_tx_rings+1; i++){
 			netmapTxRings[iface_num].push_back(NETMAP_TXRING(nifp, i));
 		}
-		for(uint32_t i=0; i<nifp->ni_rx_rings; i++){
+		for(uint32_t i=0; i<nifp->ni_rx_rings+1; i++){
 			netmapRxRings[iface_num].push_back(NETMAP_RXRING(nifp, i));
 		}
 
@@ -105,7 +125,7 @@ std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
 };
 
 void Manager::startWorkerThreads(){
-	for(unsigned i=0; numWorkers; i++){
+	for(unsigned i=0; i<numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
 			inRings[i], outRings[i], interfaces, *this, arpTable));
 	}
