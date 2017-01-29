@@ -59,7 +59,7 @@ private:
 	unsigned int numInterfaces;
 
 	std::vector<std::string> interfacesToUse;
-	std::shared_ptr<std::vector<interface>> interfaces = fillNetLink();
+	std::shared_ptr<std::vector<interface>> interfaces;
 
 	std::shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
@@ -80,7 +80,7 @@ public:
 	 */
 	Manager(std::vector<std::string> interfacesToUse) :
 		numWorkers(std::thread::hardware_concurrency()-1),
-		interfacesToUse(interfacesToUse),
+		interfacesToUse(interfacesToUse), interfaces(fillNetLink()),
 		arpTable(interfaces) {};
 
 	/*! Return the ARP table used by this manager */
