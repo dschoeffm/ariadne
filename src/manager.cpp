@@ -158,7 +158,9 @@ void Manager::process(){
 				f.len = ring->slot[slotIdx].len;
 				f.iface = iface;
 				f.vlan = 0;
-				inRings[iface]->try_enqueue(f);
+
+				assert(inRings[worker] != NULL);
+				inRings[worker]->try_enqueue(f);
 
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
 				freeBufs.pop_back();
