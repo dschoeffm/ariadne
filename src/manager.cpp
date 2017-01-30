@@ -186,18 +186,16 @@ void Manager::process(){
 		frame frame;
 		while(outRings[worker]->try_dequeue(frame)){
 			// Check for discard/host/arp flag
-			if(frame.iface & frame::IFACE_DISCARD){
-				// Just reclaim buffer
-				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
-				continue;
-			}
-
 			unsigned int ringid;
 			if(frame.iface & frame::IFACE_HOST){
 				ringid = numWorkers;
 			} else if(frame.iface & frame::IFACE_ARP){
 				ringid = numWorkers;
 				arpTable.handleFrame(frame);
+			} else if(frame.iface & frame::IFACE_DISCARD){
+				// Just reclaim buffer
+				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
+				continue;
 			} else {
 				ringid = worker;
 			}
