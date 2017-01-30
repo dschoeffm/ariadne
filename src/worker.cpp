@@ -47,6 +47,8 @@ void Worker::process(){
 			return;
 		}
 
+		logDebug("Processing packet now");
+
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
@@ -54,10 +56,12 @@ void Worker::process(){
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
+				logDebug("Discarding frame - Header verification failed");
 				f.iface = frame::IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
 				if(count(interface.IPs.begin(), interface.IPs.end(), ipv4_hdr->d_ip)){
+					logDebug("Frame is destined at the host");
 					f.iface |= frame::IFACE_HOST;
 					continue;
 				}
@@ -80,11 +84,13 @@ void Worker::process(){
 				// Is the next hop valid?
 				if(!nh){
 					// Let the manager handle this
+					logDebug("There is no MAC for this IP");
 					f.iface = nh.interface;
 					f.iface &= frame::IFACE_ID;
 					f.iface = frame::IFACE_NOMAC;
 				} else {
 					// Set MAC addresses
+					logDebug("There is nothing special about this frame");
 					ether_hdr->d_mac = nh.mac;
 					ether_hdr->s_mac = interface.mac;
 					f.iface = nh.interface;
@@ -92,9 +98,13 @@ void Worker::process(){
 				egressQ->try_enqueue(f);
 			}
 		} else if(ether_hdr->ethertype == htons(0x0806)){
+			logDebug("This frame contains some kind of ARP payload");
 			f.iface |= frame::IFACE_ARP;
 		} else {
 			// This router currently doesn't support L3 Protocol $foo
+			std::stringstream stream;
+			stream << std::hex << htons(ether_hdr->ethertype);
+			logDebug("L3 protocol is currently not supported, given: " + stream.str());
 			f.iface = frame::IFACE_DISCARD;
 		}
 	}

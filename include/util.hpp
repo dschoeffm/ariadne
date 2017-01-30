@@ -99,6 +99,14 @@ inline void logInfo(std::string str){
 	std::cout << str << std::endl;
 };
 
+inline void logDebug(std::string str){
+#ifdef DEBUG
+	std::cout << str << std::endl;
+#else
+	(void) str;
+#endif
+};
+
 inline void logErr(std::string str){
 	std::cerr << str << std::endl;
 };
