@@ -2,6 +2,8 @@
 
 using namespace std;
 using namespace moodycamel;
+using namespace headers;
+using namespace chrono;
 
 void Manager::initNetmap(){
 
@@ -169,6 +171,7 @@ void Manager::process(){
 	}
 
 	// Run over all current MAC requests
+	/*
 	vector<ARPTable::request> requests;
 	arpTable.getRequests(requests);
 	for(auto req : requests){
@@ -180,6 +183,7 @@ void Manager::process(){
 			ring->cur = ring->head;
 		}
 	}
+	*/
 
 	// Run over all frames processed by the workers and enqueue to netmap
 	for(unsigned int worker=0; worker < numWorkers; worker++){
@@ -196,6 +200,27 @@ void Manager::process(){
 				// Just reclaim buffer
 				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
 				continue;
+			} else if(frame.iface & frame::IFACE_NOMAC){
+				ringid = worker;
+				ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(frame.buf_ptr + sizeof(ether));
+				uint32_t ip = ipv4_hdr->d_ip;
+				auto it = missingMACs.find(ip);
+				if(it == missingMACs.end()){
+					macRequest mr;
+					mr.ip = ip;
+					mr.iface = frame.iface & frame::IFACE_ID;
+					mr.time = steady_clock::now();
+				} else {
+					duration<double> diff = it->second.time - steady_clock::now();
+					if(diff.count() < 0.5){
+						// Give it a bit more time and just discard the frame
+						freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
+						continue;
+					} else {
+						// Send out a new ARP Request
+						arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
+					}
+				}
 			} else {
 				ringid = worker;
 			}

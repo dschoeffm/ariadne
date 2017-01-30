@@ -6,8 +6,11 @@
 #include <string>
 #include <atomic>
 #include <unordered_set>
+#include <unordered_map>
 #include <array>
 #include <algorithm>
+#include <chrono>
+#include <ctime>
 
 class Manager;
 
@@ -66,6 +69,14 @@ private:
 
 	enum enum_state {RUN, STOP};
 	std::atomic<enum_state> state;
+
+	struct macRequest {
+		uint32_t ip;
+		uint16_t iface;
+		std::chrono::time_point<std::chrono::steady_clock> time;
+	};
+
+	std::unordered_map<uint32_t, macRequest> missingMACs;
 
 	void process();
 
