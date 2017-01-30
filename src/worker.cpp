@@ -79,8 +79,10 @@ void Worker::process(){
 
 				// Is the next hop valid?
 				if(!nh){
-					// Just discard the frame
-					f.iface = frame::IFACE_DISCARD;
+					// Let the manager handle this
+					f.iface = nh.interface;
+					f.iface &= frame::IFACE_ID;
+					f.iface = frame::IFACE_NOMAC;
 				} else {
 					// Set MAC addresses
 					ether_hdr->d_mac = nh.mac;
