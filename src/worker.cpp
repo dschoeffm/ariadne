@@ -43,7 +43,7 @@ void Worker::process(){
 
 	frame f;
 	while(1){
-		if(!ingressQ->wait_dequeue_timed(f, std::chrono::milliseconds(100))){
+		if(!ingressQ->try_dequeue(f)){
 			return;
 		}
 

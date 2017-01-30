@@ -91,11 +91,9 @@ void Manager::initNetmap(){
 	}
 	logInfo("Interface preparations finished.\n");
 
-	// inRings = new BlockingReaderWriterQueue<frame> [numWorkers];
-	// outRings = new BlockingReaderWriterQueue<frame> [numWorkers];
 	for(unsigned int i=0; i<numWorkers; i++){
-		inRings.emplace_back(make_shared<BlockingReaderWriterQueue<frame>>(RING_SIZE));
-		outRings.emplace_back(make_shared<BlockingReaderWriterQueue<frame>>(RING_SIZE));
+		inRings.emplace_back(make_shared<ConcurrentQueue<frame>>(RING_SIZE));
+		outRings.emplace_back(make_shared<ConcurrentQueue<frame>>(RING_SIZE));
 	}
 
 	routingTable = make_shared<LinuxTable>();
@@ -154,12 +152,13 @@ void Manager::process(){
 			numFrames = min(numFrames, (uint32_t) freeBufs.size());
 			uint32_t slotIdx = ring->head;
 
-			for(uint32_t frame=0; frame < numFrames; frame++){
-				inRings[iface]->try_enqueue({
-						NETMAP_BUF(ring, slotIdx),
-						ring->slot[slotIdx].len,
-						iface,
-						0});
+			for(uint32_t frameIdx=0; frameIdx < numFrames; frameIdx++){
+				frame f;
+				f.buf_ptr = reinterpret_cast<uint8_t*>(NETMAP_BUF(ring, slotIdx));
+				f.len = ring->slot[slotIdx].len;
+				f.iface = iface;
+				f.vlan = 0;
+				inRings[iface]->try_enqueue(f);
 
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
 				freeBufs.pop_back();

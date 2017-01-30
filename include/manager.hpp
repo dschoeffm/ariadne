@@ -14,7 +14,7 @@
 
 class Manager;
 
-#include "readerwriterqueue.h"
+#include "concurrentqueue.h"
 #include "config.hpp"
 #include "worker.hpp"
 #include "routingTable.hpp"
@@ -46,8 +46,8 @@ class Manager;
 class Manager {
 private:
 	std::vector<Worker*> workers;
-	std::vector<std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>>> inRings;
-	std::vector<std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>>> outRings;
+	std::vector<std::shared_ptr<moodycamel::ConcurrentQueue<frame>>> inRings;
+	std::vector<std::shared_ptr<moodycamel::ConcurrentQueue<frame>>> outRings;
 	std::vector<uint32_t> freeBufs;
 	std::shared_ptr<LPM> curLPM;
 	unsigned int numWorkers;

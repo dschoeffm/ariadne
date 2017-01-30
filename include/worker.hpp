@@ -15,7 +15,7 @@ class Worker;
 
 #include "config.hpp"
 
-#include "readerwriterqueue.h"
+#include "concurrentqueue.h"
 #include "basicTrie.hpp"
 #include "routingTable.hpp"
 #include "arpTable.hpp"
@@ -39,8 +39,8 @@ private:
 	std::shared_ptr<ARPTable::table> new_arp_table;
 
 	// Rings for frame transfer
-	std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> ingressQ;
-	std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> egressQ;
+	std::shared_ptr<moodycamel::ConcurrentQueue<frame>> ingressQ;
+	std::shared_ptr<moodycamel::ConcurrentQueue<frame>> egressQ;
 
 	// Interfaces to be used
 	std::shared_ptr<std::vector<interface>> interfaces;
@@ -87,8 +87,8 @@ public:
 	Worker(
 		std::shared_ptr<LPM> cur_lpm,
 		std::shared_ptr<ARPTable::table> cur_arp_table,
-		std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> ingressQ,
-		std::shared_ptr<moodycamel::BlockingReaderWriterQueue<frame>> egressQ,
+		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> ingressQ,
+		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> egressQ,
 		std::shared_ptr<std::vector<interface>> interfaces,
 		Manager& manager,
 		ARPTable& arpTable)
