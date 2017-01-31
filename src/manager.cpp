@@ -35,7 +35,7 @@ void Manager::initNetmap(){
 			mmapRegion = mmap(0, nmreq_root.nr_memsize,
 					PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 			if(mmapRegion == MAP_FAILED){
-				logErr("Manager::initNetmap() mmap() failed");
+				logErr("Manager::initNetmap() mmap() failed (netmap module loaded?)");
 				logErr("error: " + string(strerror(errno)));
 				abort();
 			}
@@ -154,7 +154,8 @@ void Manager::process(){
 
 			for(uint32_t frameIdx=0; frameIdx < numFrames; frameIdx++){
 				frame f;
-				f.buf_ptr = reinterpret_cast<uint8_t*>(NETMAP_BUF(ring, slotIdx));
+				f.buf_ptr = reinterpret_cast<uint8_t*>(
+						NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx));
 				f.len = ring->slot[slotIdx].len;
 				f.iface = iface;
 				f.vlan = 0;
