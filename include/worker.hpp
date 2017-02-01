@@ -92,9 +92,11 @@ public:
 		std::shared_ptr<std::vector<interface>> interfaces,
 		Manager& manager,
 		ARPTable& arpTable)
-		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table), ingressQ(ingressQ), egressQ(egressQ),
-		interfaces(interfaces), manager(manager), arpTable(arpTable),
-		thread(&Worker::run, this), state(RUN) {};
+		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table),
+		new_lpm(cur_lpm), new_arp_table(cur_arp_table),
+	   	ingressQ(ingressQ), egressQ(egressQ), interfaces(interfaces),
+		manager(manager), arpTable(arpTable),thread(&Worker::run, this),
+		state(RUN) {};
 
 	/*! Update Worker.
 	 * This function updates the worker thread with new information
