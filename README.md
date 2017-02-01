@@ -46,20 +46,11 @@ In order to compile Ariadne, some dependencies need to be installed:
 * a POSIX-compliant system
 * C++11 ready STL-library
 
-During the course of the development GCC as well as Clang are being used.
-The following compiler versions are known to work, or not to work:
-
-| Compiler | Working Versions     | Not Working Versions |
-|:--------:|:--------------------:|:--------------------:|
-| GCC      | 6.1.1, 5.4.0, 5.3.1  | 4.8.5                |
-| Clang    | 3.9.0, 3.8.1         |                      |
-
-These compilers were tested with the following revision:
-74ce 72fb ad46 400a 4c24 6e7f a4f1 ea09 388a 1b7b
-
-Do not try to use GCC older than 4.9, as it will always fail!
-
-If you want to do a debug build, usage of clang is advised.
+During the course of the development Clang is used as the main compiler.
+As long as you stick to "Release" builds GCC >= 4.9 should work without any problem.
+"Debug" builds use Clang sanitizers which may not be supported by GCC.
+If you are having any problem with either Clang or GCC please open an issue.
+Normally such things are easily fixed, since this projects sticks to C++11 without any extension.
 
 In the following we will build the router out-of-tree, in order to keep the
 working directory clean. Therefore a new directory is created, cmake
