@@ -59,6 +59,8 @@ These compilers were tested with the following revision:
 
 Do not try to use GCC older than 4.9, as it will always fail!
 
+If you want to do a debug build, usage of clang is advised.
+
 In the following we will build the router out-of-tree, in order to keep the
 working directory clean. Therefore a new directory is created, cmake
 generates the Makefile, which in turn compile the router application.
