@@ -61,7 +61,7 @@ void ARPTable::handleReply(frame& frame){
 		return;
 	}
 
-	if(arp_hdr->op != arp::OP_REPLY){
+	if(ntohs(arp_hdr->op) != arp::OP_REPLY){
 		// This is not a reply
 		logErr("Frame falsely sent to ARPTable::handleReply()");
 		return;
@@ -96,12 +96,12 @@ void ARPTable::handleRequest(frame& frame){
 		return;
 	}
 
-	if(arp_hdr->op != arp::OP_REQUEST){
+	if(ntohs(arp_hdr->op) != arp::OP_REQUEST){
 		logErr("Frame falsely sent to ARPTable::handleRequest()");
 		return;
 	}
 
-	interface& interface = interfaces->at(frame.iface);
+	interface& interface = interfaces->at(frame.iface ^ frame::IFACE_ARP);
 	// Check if we are asked
 	if(!count(interface.IPs.begin(), interface.IPs.end(),
 			arp_hdr->t_proto_addr)){
@@ -109,7 +109,7 @@ void ARPTable::handleRequest(frame& frame){
 	}
 
 	// Turn the request into a reply
-	arp_hdr->op = arp::OP_REPLY;
+	arp_hdr->op = htons(arp::OP_REPLY);
 
 	arp_hdr->t_hw_addr = arp_hdr->s_hw_addr;
 	uint32_t t_ip = arp_hdr->t_proto_addr;
@@ -131,9 +131,9 @@ void ARPTable::handleFrame(frame& frame){
 		return;
 	}
 
-	if(arp_hdr->op == arp::OP_REQUEST){
+	if(ntohs(arp_hdr->op) == arp::OP_REQUEST){
 		handleRequest(frame);
-	} else if(arp_hdr->op == arp::OP_REPLY){
+	} else if(ntohs(arp_hdr->op) == arp::OP_REPLY){
 		handleReply(frame);
 	} else {
 		logErr("Unknown ARP OP detected");

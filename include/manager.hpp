@@ -58,7 +58,7 @@ private:
 	std::vector<netmap_if*> netmapIfs;
 	nmreq nmreq_root;
 	std::vector<int> fds;
-	void* mmapRegion;
+	void* mmapRegion = NULL;
 	unsigned int numInterfaces;
 
 	std::vector<std::string> interfacesToUse;

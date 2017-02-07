@@ -2,9 +2,10 @@
 #define CONFIG_HPP
 
 #include "basicTrie.hpp"
+#include "naive.hpp"
 
 // Which LPM implmentation to use
-using LPM=BasicTrie;
+using LPM=Naive;
 
 // Fixed ring size
 constexpr auto RING_SIZE = 1024;

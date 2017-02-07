@@ -67,7 +67,7 @@ void RoutingTable::buildNextHopList(){
 			}
 			*/
 
-			if(it != nextHopMapping->end()){
+			if(it == nextHopMapping->end()){
 				// Next hop is not yet in the list
 				r.index = nextHopMapping->size();
 				ARPTable::nextHop nh;

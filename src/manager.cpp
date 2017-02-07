@@ -27,7 +27,7 @@ void Manager::initNetmap(){
 
 	for(auto iface : interfacesToUse){
 		logInfo("Preparing interface " + iface);
-		int fd;
+		int fd = 0;
 		fds.push_back(fd = open("/dev/netmap", O_RDWR));
 		strncpy(nmreq_root.nr_name, iface.c_str(), 16);
 		ioctl(fd, NIOCREGIF, &nmreq_root);
@@ -126,6 +126,7 @@ std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
 
 void Manager::startWorkerThreads(){
 	// TODO Init ARP Table stuff from routing table
+	arpTable.createCurrentTable(routingTable);
 	for(unsigned i=0; i<numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
 			inRings[i], outRings[i], interfaces, *this, arpTable));
@@ -146,8 +147,8 @@ void Manager::process(){
 
 	// Run over all interfaces and rings -> enqueue new frames for workers
 	for(uint16_t iface=0; iface < numInterfaces; iface++){
-		// numWorkers+1 for host ring
-		for(unsigned int worker=0; worker < numWorkers+1; worker++){
+		// netmap rings
+		for(unsigned int worker=0; worker < numWorkers; worker++){
 			netmap_ring* ring = netmapRxRings[iface][worker];
 			uint32_t numFrames = nm_ring_space(ring);
 			numFrames = min(numFrames, (uint32_t) freeBufs.size());
@@ -171,6 +172,8 @@ void Manager::process(){
 				ring->cur = slotIdx;
 			}
 		}
+
+		// TODO host ring
 	}
 
 	// Run over all current MAC requests

@@ -11,7 +11,8 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 
 	// Step 2
 	if(IPv4HdrChecksum(ipv4_hdr) != ipv4_hdr->checksum){
-		return false;
+		cerr << "IPv4 verification failed" << endl;
+		//return false;
 	}
 
 	// Step 3
@@ -73,6 +74,11 @@ void Worker::process(){
 				// Route the packet
 				nh_index index = cur_lpm->route(ntohl(ipv4_hdr->d_ip));
 
+				// Check if the index is invalid
+				if(index == RoutingTable::route::NH_INVALID){
+					fatal("next hop is invalid");
+				}
+
 				// Look up the next hop
 				ARPTable::nextHop nh;
 				if(index != RoutingTable::route::NH_DIRECTLY_CONNECTED){
@@ -100,12 +106,14 @@ void Worker::process(){
 		} else if(ether_hdr->ethertype == htons(0x0806)){
 			logDebug("This frame contains some kind of ARP payload");
 			f.iface |= frame::IFACE_ARP;
+			egressQ->try_enqueue(f);
 		} else {
 			// This router currently doesn't support L3 Protocol $foo
 			std::stringstream stream;
 			stream << std::hex << htons(ether_hdr->ethertype);
 			logDebug("L3 protocol is currently not supported, given: " + stream.str());
 			f.iface = frame::IFACE_DISCARD;
+			egressQ->try_enqueue(f);
 		}
 	}
 };

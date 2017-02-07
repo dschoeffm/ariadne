@@ -67,7 +67,7 @@ struct arp {
 	uint16_t proto_type; //!< Protocol type (0x0800)
 	uint8_t hw_len; //!< Length of hardware address (6)
 	uint8_t proto_len; //!< Length of protocol address (4)
-	uint8_t op; //!< Operation
+	uint16_t op; //!< Operation
 /*
 #define ARP_OP_REQUEST 0x0001
 #define ARP_OP_REPLY 0x0002
