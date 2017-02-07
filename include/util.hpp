@@ -113,7 +113,7 @@ inline void logErr(std::string str){
 
 inline void fatal(std::string str){
 	std::cerr << str << std::endl;
-	std::exit(1);
+	std::abort();
 };
 
 #endif /* UTIL_HPP */

@@ -164,6 +164,7 @@ void Manager::process(){
 
 				assert(inRings[worker] != NULL);
 				inRings[worker]->try_enqueue(f);
+				logDebug("Manager::process() enqueue new frame");
 
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
 				freeBufs.pop_back();
@@ -198,43 +199,53 @@ void Manager::process(){
 			// Check for discard/host/arp flag
 			unsigned int ringid;
 			if(frame.iface & frame::IFACE_HOST){
+				logDebug("Manager::process Forwarding frame to kernel");
 				ringid = numWorkers;
 			} else if(frame.iface & frame::IFACE_ARP){
-				ringid = numWorkers;
+				logDebug("Manager::process handling ARP frame");
+				ringid = worker;
 				arpTable.handleFrame(frame);
 			} else if(frame.iface & frame::IFACE_DISCARD){
 				// Just reclaim buffer
+				logDebug("Manager::process discarding frame");
 				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
 				continue;
 			} else if(frame.iface & frame::IFACE_NOMAC){
+				logDebug("Manager::process no MAC for target");
 				ringid = worker;
 				ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(frame.buf_ptr + sizeof(ether));
 				uint32_t ip = ipv4_hdr->d_ip;
 				auto it = missingMACs.find(ip);
 				if(it == missingMACs.end()){
+					logDebug("Manager::process no ARP request sent yet, sending now");
 					macRequest mr;
 					mr.ip = ip;
 					mr.iface = frame.iface & frame::IFACE_ID;
 					mr.time = steady_clock::now();
+					arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
+					missingMACs[ip] = mr;
 				} else {
 					duration<double> diff = it->second.time - steady_clock::now();
 					if(diff.count() < 0.5){
 						// Give it a bit more time and just discard the frame
 						freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
+						logDebug("Manager::process no new ARP request");
 						continue;
 					} else {
 						// Send out a new ARP Request
 						arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
+						logDebug("Manager::process prepare new ARP request");
 					}
 				}
 			} else {
 				ringid = worker;
 			}
 
+			logDebug("Manager::process() sending frame to netmap");
 			uint16_t iface = frame.iface & frame::IFACE_ID;
 			netmap_ring* ring = netmapTxRings[iface][ringid];
 			uint32_t slotIdx = ring->head;
-			freeBufs.push_back(ring->slot[slotIdx].buf_idx);
+			//freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
 			ring->head = nm_ring_next(ring, ring->head);
 			ring->cur = ring->head;

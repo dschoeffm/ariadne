@@ -76,7 +76,7 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 	interface.netlinkIndex = index;
 	interface.name = "noname";
 	interface.mac = {{0}};
-	interface.IPs.resize(0);
+	//interface.IPs.resize(0);
 
 	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifm)) {
 		int type = mnl_attr_get_type(attr);
