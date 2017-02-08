@@ -2,13 +2,8 @@ PROJECT(ariadne-test CXX)
 
 SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-if(NOT CMAKE_BUILD_TYPE)
-	SET(CMAKE_BUILD_TYPE "DEBUG")
-endif(NOT CMAKE_BUILD_TYPE)
-
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -march=native")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -DDEBUG -g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-inline")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
+# Always compile as debug
+SET(CMAKE_BUILD_TYPE "DEBUG")
 
 INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}/include
