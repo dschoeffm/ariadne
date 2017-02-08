@@ -125,7 +125,6 @@ std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
 };
 
 void Manager::startWorkerThreads(){
-	// TODO Init ARP Table stuff from routing table
 	arpTable.createCurrentTable(routingTable);
 	for(unsigned i=0; i<numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),

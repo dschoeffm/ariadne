@@ -6,6 +6,8 @@ using namespace headers;
 constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
+	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
+
 	// create a new table;
 	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
 	auto next_hop_addresses = routingTable->getNextHopMapping();
@@ -26,6 +28,8 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 }
 
 void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
+	logDebug("ARPTable::prepareRequest Preparing ARP request now");
+
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
@@ -50,6 +54,8 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 }
 
 void ARPTable::handleReply(frame& frame){
+	logDebug("ARPTable::handleReply Looking at ARP reply now");
+
 	// ARP is stateless -> doesn't mapper if we actually sent a request
 	uint32_t ip;
 	std::array<uint8_t, 6> mac;
@@ -88,6 +94,7 @@ void ARPTable::handleReply(frame& frame){
 }
 
 void ARPTable::handleRequest(frame& frame){
+	logDebug("ARPTable::handleRequest looking ar request now");
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
