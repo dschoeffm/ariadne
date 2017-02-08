@@ -1,0 +1,49 @@
+PROJECT(ariadne-test CXX)
+SET(PRJ ariadne-test)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE "DEBUG")
+endif(NOT CMAKE_BUILD_TYPE)
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -march=native")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -DDEBUG -g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-inline")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
+
+INCLUDE_DIRECTORIES(
+	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_SOURCE_DIR}/submodules/concurrentqueue
+	${CMAKE_SOURCE_DIR}/submodules/readerwriterqueue
+)
+
+
+file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
+
+SET(ALL_LIBS
+	-lmnl
+	-pthread
+)
+
+ADD_LIBRARY(${PRJ} SHARED ${SOURCES})
+TARGET_LINK_LIBRARIES(${PRJ} ${ALL_LIBS})
+
+#file(GLOB TESTS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+#foreach(TESTFILE TESTS)
+#	ADD_EXECUTABLE(${TESTFILE} ${TESTFILE})
+#	TARGET_LINK_LIBRARIES(${TESTFILE} ${PRJ})
+#endforeach(TESTFILE)
+
+#ADD_EXECUTABLE(testLinuxTable ${CMAKE_CURRENT_SOURCE_DIR}/testLinuxTable.cpp)
+#TARGET_LINK_LIBRARIES(testLinuxTable ${PRJ})
+#ADD_TEST(testLinuxTable testLinuxTable)
+
+file(GLOB TESTS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+#foreach(TESTNAME "testLinuxTable")
+foreach(TESTNAMECPP ${TESTS})
+	GET_FILENAME_COMPONENT(TESTNAME ${TESTNAMECPP} NAME_WE)
+	ADD_EXECUTABLE(${TESTNAME} ${TESTNAMECPP})
+	TARGET_LINK_LIBRARIES(${TESTNAME} ${PRJ})
+	ADD_TEST(${TESTNAME} ${TESTNAME})
+endforeach(TESTNAMECPP)
