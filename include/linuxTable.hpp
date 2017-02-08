@@ -19,15 +19,16 @@
  * Extracts the routing information from the Linux kernel via the netlink API
  */
 class LinuxTable : public RoutingTable {
-public:
-	/*! Create a new kernel based routing table
-	 */
-	LinuxTable();
-
+protected:
 	/*! Update the current state with the kernel information.
 	 * Reads the current kernel routing table
 	 */
 	void updateInfo();
+
+public:
+	/*! Create a new kernel based routing table
+	 */
+	LinuxTable();
 };
 
 #endif /* LINUX_HPP */
