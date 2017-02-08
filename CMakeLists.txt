@@ -1,15 +1,15 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(ariadne CXX)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release")
+	SET(CMAKE_BUILD_TYPE "Release")
 endif(NOT CMAKE_BUILD_TYPE)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -march=native")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -DDEBUG -g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-inline")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -march=native")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -DDEBUG -g3 -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-inline")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
 
 INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -17,17 +17,15 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/submodules/readerwriterqueue
 )
 
-SET(PRJ ariadne)
-
-file(GLOB SOURCES src/*.cpp)
+FILE(GLOB SOURCES src/*.cpp)
 
 SET(ALL_LIBS
 	-lmnl
 	-pthread
 )
 
-ADD_EXECUTABLE(${PRJ} ${SOURCES})
-TARGET_LINK_LIBRARIES(${PRJ} ${ALL_LIBS})
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ALL_LIBS})
 
 ENABLE_TESTING()
 ADD_SUBDIRECTORY(tests)
