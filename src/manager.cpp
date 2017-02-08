@@ -128,7 +128,7 @@ void Manager::startWorkerThreads(){
 	arpTable.createCurrentTable(routingTable);
 	for(unsigned i=0; i<numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
-			inRings[i], outRings[i], interfaces, *this, arpTable));
+			inRings[i], outRings[i], interfaces));
 	}
 };
 

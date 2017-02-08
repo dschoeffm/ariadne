@@ -45,12 +45,6 @@ private:
 	// Interfaces to be used
 	std::shared_ptr<std::vector<interface>> interfaces;
 
-	// Manager responsible for this worker
-	Manager& manager;
-
-	// ARP table, used to enqueue MAC requests
-	ARPTable& arpTable;
-
 	// The thread this one worker works in
 	std::thread thread;
 
@@ -89,13 +83,11 @@ public:
 		std::shared_ptr<ARPTable::table> cur_arp_table,
 		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> ingressQ,
 		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> egressQ,
-		std::shared_ptr<std::vector<interface>> interfaces,
-		Manager& manager,
-		ARPTable& arpTable)
+		std::shared_ptr<std::vector<interface>> interfaces)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table),
 		new_lpm(cur_lpm), new_arp_table(cur_arp_table),
 	   	ingressQ(ingressQ), egressQ(egressQ), interfaces(interfaces),
-		manager(manager), arpTable(arpTable),thread(&Worker::run, this),
+		thread(&Worker::run, this),
 		state(RUN) {};
 
 	/*! Update Worker.
