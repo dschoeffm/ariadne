@@ -77,3 +77,7 @@ The best way to learn about the internal working of this project is to visit
 the Doxygen site:
 [https://dschoeffm.github.io/ariadne/](https://dschoeffm.github.io/ariadne/)
 
+You may also want to get familiar with the unit-test setup.
+All tests are defined by a single .cpp-file in the `tests` directory.
+Every source file is automatically registered to be a test.
+As soon as the above build process is finished, all tests can be executed by running `ctest` inside the build directory.
