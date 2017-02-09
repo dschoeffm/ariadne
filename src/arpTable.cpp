@@ -5,6 +5,7 @@ using namespace headers;
 
 constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
+#if 0
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
 
@@ -20,12 +21,32 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 			continue;
 		}
 
-		newTable->nextHops[i] = it->second;;
+		newTable->nextHops[i] = it->second;
 	}
 
 	// Set the new table as the default
 	currentTable = newTable;
 }
+#endif
+
+void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
+	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
+
+	// create a new table;
+	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
+	auto next_hop_addresses = routingTable->getNextHopMapping();
+
+	newTable->nextHops.resize(next_hop_addresses->size());
+	for(auto nh : *next_hop_addresses){
+		newTable->nextHops[nh.index].interface = nh.interface;
+		newTable->nextHops[nh.index].mac = {{0}}; // just initialize
+		if(mapping.count(nh.nh_ip)){
+			newTable->nextHops[nh.index].mac = mapping[nh.nh_ip].mac;
+		}
+	}
+
+	currentTable = newTable;
+};
 
 void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	logDebug("ARPTable::prepareRequest Preparing ARP request now");
@@ -73,15 +94,16 @@ void ARPTable::handleReply(frame& frame){
 		return;
 	}
 
-	ip = arp_hdr->s_proto_addr;
+	ip = ntohl(arp_hdr->s_proto_addr);
 	mac = arp_hdr->s_hw_addr;
 
 	nextHop nextHop;
 
 	nextHop.mac = mac;
-	nextHop.interface = frame.iface;
+	nextHop.interface = frame.iface & frame::IFACE_ID;
 
 	auto next_hop_addresses = routingTable->getNextHopMapping();
+#if 0
 	auto it = find(next_hop_addresses->begin(), next_hop_addresses->end(), ip);
 	if(it == next_hop_addresses->end()){
 		// This is a next hop inside the routing table
@@ -91,6 +113,20 @@ void ARPTable::handleReply(frame& frame){
 		// This is a directly connected node
 		directlyConnected.insert({ip, nextHop});
 	}
+#endif
+
+	// Check if this is a registered next hop
+	for(auto& nh : *next_hop_addresses){
+		if(nh.nh_ip == ip && nh.interface == (frame.iface & frame::IFACE_ID)){
+			mapping.insert({ip, nextHop});
+			currentTable->nextHops[nh.index].mac = mac;
+
+			return;
+		}
+	}
+
+	// In case we reach this, the node is directly connected
+	directlyConnected.insert({ip, nextHop});
 }
 
 void ARPTable::handleRequest(frame& frame){

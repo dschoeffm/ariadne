@@ -50,6 +50,7 @@ void RoutingTable::aggregate() {
 
 };
 
+#if 0
 void RoutingTable::buildNextHopList(){
 	vector<uint32_t> new_nextHopList;
 	vector<ARPTable::nextHop> nextHopList;
@@ -86,3 +87,58 @@ void RoutingTable::buildNextHopList(){
 		}
 	}
 }
+#endif
+
+void RoutingTable::buildNextHopList(){
+	logDebug("RoutingTable::buildNextHopList() create the next hop indices now");
+	nh_index next_index = 0;
+
+	for(auto &a : *entries){
+		for(auto &r : a){
+
+			stringstream sstream;
+			sstream << endl << "Route information: "
+				<< ip_to_str(r.base) << "/" << r.prefix_length
+				<< " via " << ip_to_str(r.next_hop)
+				<< " iface " << r.interface
+			    << " nh_index " << r.index;
+			logDebug(sstream.str());
+
+			if(r.next_hop == 0){
+				logDebug("Route is directly connected");
+				r.index = route::NH_DIRECTLY_CONNECTED;
+				continue;
+			}
+
+			bool finished = false;
+			// Check if this next hop already has an index
+			for(nh_abstract nh : *nextHopMapping){
+				if(nh.nh_ip == r.next_hop){
+					logDebug("Next hop is found and will be used");
+					finished = true;
+					r.index = nh.index;
+					break;
+				}
+			}
+			if(finished){
+				continue;
+			}
+
+			// In case we continue here, we need to insert a new nh
+			logDebug("Next hop is not yet found - a new one will be inserted");
+			nh_abstract nh;
+			nh.nh_ip = r.next_hop;
+			nh.index = next_index++;
+			nh.interface = r.interface;
+			r.index = nh.index;
+			nextHopMapping->push_back(nh);
+			stringstream sstream1;
+			sstream1 << "The new next hop has the index " << r.index;
+			logDebug(sstream1.str());
+		}
+	}
+
+	logInfo("The routing table with the new nh indices:");
+	print_table();
+};
+

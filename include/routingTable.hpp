@@ -61,6 +61,12 @@ public:
 		};
 	};
 
+	struct nh_abstract {
+		uint32_t nh_ip;
+		uint16_t interface;
+		nh_index index;
+	};
+
 
 	static const route invalidRoute; //!< invalid Route
 
@@ -72,8 +78,8 @@ protected:
 
 	/*! Mapping from next hop index to IPv4 addresses.
 	 */
-	std::shared_ptr<std::vector<uint32_t>>
-		nextHopMapping = std::make_shared<std::vector<uint32_t>>();
+	std::shared_ptr<std::vector<nh_abstract>>
+		nextHopMapping = std::make_shared<std::vector<nh_abstract>>();
 
 	/*! Update the underlying routing infomation.
 	 * Implementation is up to the child class
@@ -100,7 +106,7 @@ public:
 	 * Get a mapping from the next hop index to an IPv4 address
 	 * \return mapping
 	 */
-	std::shared_ptr<std::vector<uint32_t>> getNextHopMapping(){
+	std::shared_ptr<std::vector<nh_abstract>> getNextHopMapping(){
 		return nextHopMapping;
 	};
 
