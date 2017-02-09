@@ -100,9 +100,40 @@ int main(int argc, char** argv){
 	tt->print_table();
 
 	table = arpTable.getCurrentTable();
-	assert(table->nextHops.size() == 5);
+
+	cout << "Next Hop table:" << endl;
+	for(auto a : table->nextHops){
+		cout << " Next Hop:" << endl;
+		cout << "   Mac: " << mac_to_str(a.mac) << endl;
+		cout << "   Interface: " << a.interface << endl;
+	}
+
+	cout << endl << "Next Hop Mapping:" << endl;
+	for(auto a : *tt->getNextHopMapping()){
+		cout << "   IP: " << ip_to_str(a.nh_ip);
+		cout << "  index: " << a.index;
+		cout << "  interface: " << a.interface << endl;
+	}
+
+	assert(table->nextHops.size() == 3);
 	assert(table->directlyConnected.size() == 0);
 
+	// Check if the nh_index numbers 1 & 2 are given
+	bool found_nh_1 = false;
+	bool found_nh_2 = false;
+
+	for(auto a : *tt->getSortedRoutes()){
+		for(auto &r : a){
+			if(r.index == 1){
+				found_nh_1 = true;
+			} else if(r.index == 2){
+				found_nh_2 = true;
+			}
+		}
+	}
+
+	assert(found_nh_1);
+	assert(found_nh_2);
 
 	return 0;
 }
