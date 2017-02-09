@@ -97,11 +97,11 @@ void RoutingTable::buildNextHopList(){
 		for(auto &r : a){
 
 			stringstream sstream;
-			sstream << endl << "Route information: "
-				<< ip_to_str(r.base) << "/" << r.prefix_length
-				<< " via " << ip_to_str(r.next_hop)
-				<< " iface " << r.interface
-			    << " nh_index " << r.index;
+			sstream << endl << "Route information: ";
+			sstream << ip_to_str(r.base) << "/" << r.prefix_length;
+			sstream << " via " << ip_to_str(r.next_hop);
+			sstream << " iface " << r.interface;
+			//sstream << " nh_index " << r.index;
 			logDebug(sstream.str());
 
 			if(r.next_hop == 0){
