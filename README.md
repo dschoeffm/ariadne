@@ -48,13 +48,12 @@ In order to compile Ariadne, some dependencies need to be installed:
 
 During the course of the development Clang is used as the main compiler.
 As long as you stick to "Release" builds GCC >= 4.9 should work without any problem.
-"Debug" builds use Clang sanitizers which may not be supported by GCC.
 If you are having any problem with either Clang or GCC please open an issue.
 Normally such things are easily fixed, since this projects sticks to C++11 without any extension.
 
 In the following we will build the router out-of-tree, in order to keep the
 working directory clean. Therefore a new directory is created, cmake
-generates the Makefile, which in turn compile the router application.
+generates the Makefile, which in turn compiles the router application.
 
 ~~~{.sh}
 git submodule init
