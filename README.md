@@ -72,9 +72,8 @@ make -j4
 
 ## Developing Ariadne
 
-The best way to learn about the internal working of this project is to visit
-the Doxygen site:
-[https://dschoeffm.github.io/ariadne/](https://dschoeffm.github.io/ariadne/)
+The best way to learn about the internal working of this project look at its Doxygen.
+You can build it by using the `doxygen` command inside the `doc` directory.
 
 You may also want to get familiar with the unit-test setup.
 All tests are defined by a single .cpp-file in the `tests` directory.
