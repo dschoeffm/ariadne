@@ -72,13 +72,11 @@ public:
 	static const route invalidRoute; //!< invalid Route
 
 protected:
-	/*! All of the routing information is contained here.
-	 */
+	/*! All of the routing information is contained here. */
 	std::shared_ptr<std::vector<std::vector<route>>>
 		entries = std::make_shared<std::vector<std::vector<route>>>();
 
-	/*! Mapping from next hop index to IPv4 addresses.
-	 */
+	/*! Mapping from next hop index to IPv4 addresses. */
 	std::shared_ptr<std::vector<nh_abstract>>
 		nextHopMapping = std::make_shared<std::vector<nh_abstract>>();
 
