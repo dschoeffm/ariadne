@@ -84,7 +84,13 @@ void Worker::process(){
 				if(index != RoutingTable::route::NH_DIRECTLY_CONNECTED){
 					nh = cur_arp_table->nextHops[index];
 				} else {
-					nh = cur_arp_table->directlyConnected.at(ntohl(ipv4_hdr->d_ip));
+					//nh = cur_arp_table->directlyConnected.at(ntohl(ipv4_hdr->d_ip));
+					auto it = cur_arp_table->directlyConnected.find(ntohl(ipv4_hdr->d_ip));
+					if(it != cur_arp_table->directlyConnected.end()){
+						nh = it->second;
+					} else {
+						nh.mac = ARPTable::nextHop::invalidMac;
+					}
 				}
 
 				// Is the next hop valid?

@@ -32,7 +32,7 @@ public:
 
 		static constexpr std::array<uint8_t,6> invalidMac  = {{0}};
 		operator bool(){
-			if(mac ==  invalidMac || interface == uint16_t_max){
+			if(mac == invalidMac || interface == uint16_t_max){
 				return false;
 			} else{
 				return true;
