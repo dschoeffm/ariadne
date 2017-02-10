@@ -11,8 +11,8 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 
 	// Step 2
 	if(IPv4HdrChecksum(ipv4_hdr) != ipv4_hdr->checksum){
-		cerr << "IPv4 verification failed" << endl;
-		//return false;
+		logDebug("IPv4 verification failed");
+		return false;
 	}
 
 	// Step 3

@@ -77,17 +77,21 @@ inline void parseMac(const char* str, uint8_t mac[6]){
 }
 
 inline uint16_t IPv4HdrChecksum(headers::ipv4* header){
-	uint16_t result = 0;
+	uint32_t result = 0;
 	uint16_t* hdr_cast = reinterpret_cast<uint16_t*>(header);
 
 	uint16_t orig_checksum = header->checksum;
 	header->checksum = 0;
 	for(uint8_t i=0; i<(header->ihl() *2); i++){
-		result += ~(hdr_cast[i]);
+		result += ntohs(hdr_cast[i]);
+		if(result & (1<<16)){
+			result &= 0xffff;
+			result++;
+		}
 	}
 
 	header->checksum = orig_checksum;
-	return (~result);
+	return htons(~result);
 };
 
 template<typename T>
