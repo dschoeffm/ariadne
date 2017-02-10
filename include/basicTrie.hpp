@@ -25,9 +25,13 @@ private:
 		nh_index leaf;
 
 		Internal(Internal* left, Internal* right, Internal* parent);
+		~Internal(){
+			if(left){delete(left);}
+			if(right){delete(right);}
+		};
 	};
 
-	Internal* root;
+	std::unique_ptr<Internal> root;
 	RoutingTable& table;
 
 	void buildTrie();

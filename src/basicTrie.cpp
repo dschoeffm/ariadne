@@ -8,14 +8,14 @@ BasicTrie::Internal::Internal(
 
 void BasicTrie::buildTrie() {
 	// Allocate root node
-	root = new Internal(NULL, NULL, NULL);
+	root.reset(new Internal(NULL, NULL, NULL));
 
 	// Build trie
 	shared_ptr<vector<vector<RoutingTable::route>>> tbl = table.getSortedRoutes();
 	for(int len=0; len<=32; len++){
 		for(auto& route : (*tbl)[len]){
 			// The Internal node is always at level len
-			Internal* cur = root;
+			Internal* cur = root.get();
 			for(int level=0; level<len; level++){
 				// If the next level does not exist, create the internal node
 				uint32_t bit = extractBit(route.base, level);
@@ -39,7 +39,7 @@ BasicTrie::BasicTrie(RoutingTable& table) : table(table) {
 
 nh_index BasicTrie::route(uint32_t addr) const {
 	// Bootstrap first iteration
-	Internal* cur = root;
+	Internal* cur = root.get();
 	int pos = 0;
 	uint32_t bit = extractBit(addr, pos);
 	Internal* next = (bit) ? cur->right : cur->left;
