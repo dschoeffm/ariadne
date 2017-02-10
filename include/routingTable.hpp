@@ -38,7 +38,8 @@ public:
 			base(uint32_t_max),
 			next_hop(uint32_t_max),
 			prefix_length(uint32_t_max),
-			interface(uint16_t_max) {};
+			interface(uint16_t_max),
+			index(NH_INVALID) {};
 
 		/*! Copy Constructor
 		 */

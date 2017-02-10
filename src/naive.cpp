@@ -13,9 +13,9 @@ uint16_t Naive::route(uint32_t addr) const {
 	for(int len=32; len>=0; len--){
 		for(auto& route : (*entries)[len]){
 			if(route.base == (addr & masks[len])){
-				return route.next_hop;
+				return route.index;
 			}
 		}
 	};
-	return uint16_t_max;
+	return RoutingTable::route::NH_INVALID;
 };
