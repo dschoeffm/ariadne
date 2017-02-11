@@ -217,7 +217,7 @@ void Manager::process(){
 				auto it = missingMACs.find(ip);
 				if(it == missingMACs.end()){
 					stringstream sstream;
-					sstream << "Manager::process no ARP request sent yet, ";
+					sstream << "Manager::process no ARP request sent yet,";
 					sstream << " sending now via interface ";
 					sstream << (frame.iface & frame::IFACE_ID);
 					logDebug(sstream.str());
@@ -255,6 +255,10 @@ void Manager::process(){
 
 		}
 	}
-
-
 }
+
+void Manager::printInterfaces(){
+	for(auto i : *interfaces){
+		logDebug(i.toString());
+	}
+};

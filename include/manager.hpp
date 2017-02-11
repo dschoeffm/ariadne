@@ -106,17 +106,21 @@ public:
 		initNetmap();
 		startWorkerThreads();
 		state.store(RUN);
+		printInterfaces();
 		while(state.load() == RUN){
 			process();
 		}
 	}
 
-	/*! Stops the router
+	/*! Stops the router.
 	 * This function gracefully stops the router
 	 */
 	void stop(){
 		state.store(STOP);
 	}
+
+	/*! Print all the information about all interfaces. */
+	void printInterfaces();
 };
 
 #endif /* MANAGER_HPP */
