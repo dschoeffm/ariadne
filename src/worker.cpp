@@ -96,7 +96,7 @@ void Worker::process(){
 				// Is the next hop valid?
 				if(!nh){
 					// Let the manager handle this
-					logDebug("There is no MAC for this IP");
+					logDebug("There is no MAC for this IP (" + ip_to_str(ipv4_hdr->d_ip) + ")");
 					f.iface = nh.interface;
 					f.iface &= frame::IFACE_ID;
 					f.iface = frame::IFACE_NOMAC;

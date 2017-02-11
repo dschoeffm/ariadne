@@ -216,7 +216,11 @@ void Manager::process(){
 				uint32_t ip = ipv4_hdr->d_ip;
 				auto it = missingMACs.find(ip);
 				if(it == missingMACs.end()){
-					logDebug("Manager::process no ARP request sent yet, sending now");
+					stringstream sstream;
+					sstream << "Manager::process no ARP request sent yet, ";
+					sstream << " sending now via interface ";
+					sstream << (frame.iface & frame::IFACE_ID);
+					logDebug(sstream.str());
 					macRequest mr;
 					mr.ip = ip;
 					mr.iface = frame.iface & frame::IFACE_ID;
