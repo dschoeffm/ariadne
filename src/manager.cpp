@@ -33,7 +33,7 @@ void Manager::initNetmap(){
 		ioctl(fd, NIOCREGIF, &nmreq_root);
 		if(!mmapRegion){
 			mmapRegion = mmap(0, nmreq_root.nr_memsize,
-					PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+					PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 			if(mmapRegion == MAP_FAILED){
 				logErr("Manager::initNetmap() mmap() failed (netmap module loaded?)");
 				logErr("error: " + string(strerror(errno)));
