@@ -13,15 +13,15 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 {
 	struct ifaddrmsg *ifa = (struct ifaddrmsg *) mnl_nlmsg_get_payload(nlh);
 	struct nlattr *attr;
-	vector<interface>* interfaces = static_cast<vector<interface>*>(data);
+	vector<Interface>* interfaces = static_cast<vector<Interface>*>(data);
 	uint32_t index = ifa->ifa_index;
 
 	auto it = find_if(interfaces->begin(), interfaces->end(),
-			[index](interface& i){
+			[index](Interface& i){
 				return i.netlinkIndex == index;
 			});
 
-	interface& interface =
+	Interface& interface =
 		(it == interfaces->end())
 		? *interfaces->emplace(interfaces->end())
 		: *it;
@@ -61,15 +61,15 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 	struct ifinfomsg *ifm = (struct ifinfomsg*) mnl_nlmsg_get_payload(nlh);
 	struct nlattr *attr;
 
-	vector<interface>* interfaces = static_cast<vector<interface>*>(data);
+	vector<Interface>* interfaces = static_cast<vector<Interface>*>(data);
 	uint32_t index = ifm->ifi_index;
 
 	auto it = find_if(interfaces->begin(), interfaces->end(),
-			[index](interface& i){
+			[index](Interface& i){
 				return i.netlinkIndex == index;
 			});
 
-	interface& interface =
+	Interface& interface =
 		(it == interfaces->end())
 		? *interfaces->emplace(interfaces->end())
 		: *it;
@@ -105,7 +105,7 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 
 // Adapted from:
 // https://git.netfilter.org/libmnl/plain/examples/rtnl/rtnl-link-dump3.c
-shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
+shared_ptr<vector<Interface>> Netlink::getAllInterfaces() {
 	struct mnl_socket *nl;
 	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct nlmsghdr *nlh;
@@ -113,7 +113,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	int ret;
 	unsigned int seq, portid;
 
-	shared_ptr<vector<interface>> interfaces = make_shared<vector<interface>>();
+	shared_ptr<vector<Interface>> interfaces = make_shared<vector<Interface>>();
 
 	// Open NL socket
 	nl = mnl_socket_open(NETLINK_ROUTE);

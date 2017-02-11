@@ -23,7 +23,7 @@ class Netlink {
 public:
 	/*! Return all interfaces of the router (unordered).
 	 */
-	static std::shared_ptr<std::vector<interface>> getAllInterfaces();
+	static std::shared_ptr<std::vector<Interface>> getAllInterfaces();
 };
 
 #endif /* NETLINK_HPP */

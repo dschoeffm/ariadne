@@ -12,7 +12,7 @@
  * This struct includes all necessary information
  * to characterize one ethernet port
  */
-struct interface {
+struct Interface {
 	std::array<uint8_t, 6> mac = {{0}}; //!< MAC address
 	uint32_t netlinkIndex = uint32_t_max; //!< Index of the interface in the netlink context
 	uint32_t netmapIndex = uint32_t_max; //!< Index of the interface in the netmap context
@@ -21,13 +21,13 @@ struct interface {
 
 	/*! Order by netmapIndex.
 	 */
-	bool operator< (const interface& i) const {
+	bool operator< (const Interface& i) const {
 		return netmapIndex > i.netmapIndex;
 	};
 
 	/*! Equal by netmapIndex.
 	 */
-	bool operator== (const interface& i) const {
+	bool operator== (const Interface& i) const {
 		return netmapIndex == i.netmapIndex;
 	};
 

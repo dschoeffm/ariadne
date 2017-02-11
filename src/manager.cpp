@@ -11,6 +11,10 @@ void Manager::initNetmap(){
 		fatal("You need to be root in order to use Netmap!");
 	}
 
+	routingTable = make_shared<LinuxTable>();
+	//routingTable->print_table();
+	curLPM = make_shared<LPM>(*(routingTable.get()));
+
 	nmreq_root.nr_version = NETMAP_API;
 	nmreq_root.nr_tx_slots = 2048;
 	nmreq_root.nr_rx_slots = 2048;
@@ -77,7 +81,7 @@ void Manager::initNetmap(){
 			freeBufs.push_back(bufIdx);
 		}
 		auto it = find_if(interfaces->begin(), interfaces->end(),
-			[iface](interface& i){
+			[iface](Interface& i){
 				return i == iface;
 			});
 
@@ -96,14 +100,13 @@ void Manager::initNetmap(){
 		outRings.emplace_back(make_shared<ConcurrentQueue<frame>>(RING_SIZE));
 	}
 
-	routingTable = make_shared<LinuxTable>();
+	routingTable->buildNextHopList();
 	routingTable->print_table();
-	curLPM = make_shared<LPM>(*(routingTable.get()));
 	numInterfaces = netmapIfs.size();
 };
 
-std::shared_ptr<std::vector<interface>> Manager::fillNetLink(){
-	shared_ptr<vector<interface>> interfaces = Netlink::getAllInterfaces();
+std::shared_ptr<std::vector<Interface>> Manager::fillNetLink(){
+	shared_ptr<vector<Interface>> interfaces = Netlink::getAllInterfaces();
 	sort(interfaces->begin(), interfaces->end());
 	/*
 	uint32_t max_index = interfaces->back().netlinkIndex;
@@ -163,7 +166,7 @@ void Manager::process(){
 
 				assert(inRings[worker] != NULL);
 				inRings[worker]->try_enqueue(f);
-				logDebug("Manager::process() enqueue new frame");
+				logDebug("Manager::process enqueue new frame");
 
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
 				freeBufs.pop_back();
@@ -244,7 +247,7 @@ void Manager::process(){
 				ringid = worker;
 			}
 
-			logDebug("Manager::process() sending frame to netmap");
+			logDebug("Manager::process sending frame to netmap");
 			uint16_t iface = frame.iface & frame::IFACE_ID;
 			netmap_ring* ring = netmapTxRings[iface][ringid];
 			uint32_t slotIdx = ring->head;

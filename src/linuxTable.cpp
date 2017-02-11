@@ -64,9 +64,7 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 	}
 
 	if (tb[RTA_OIF]) {
-		new_route.interface = mnl_attr_get_u32(tb[RTA_OIF]);
-	} else {
-		new_route.interface = uint16_t_max;
+		new_route.interface->netlinkIndex = mnl_attr_get_u32(tb[RTA_OIF]);
 	}
 
 	if (tb[RTA_GATEWAY]) {

@@ -48,12 +48,12 @@ void Worker::process(){
 			return;
 		}
 
-		logDebug("Processing packet now");
+		logDebug("Worker::process Processing packet now");
 
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
-		interface& interface = interfaces->at(f.iface);
+		Interface& interface = interfaces->at(f.iface & frame::IFACE_ID);
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
@@ -97,7 +97,7 @@ void Worker::process(){
 				if(!nh){
 					// Let the manager handle this
 					logDebug("There is no MAC for this IP (" + ip_to_str(htonl(ipv4_hdr->d_ip)) + ")");
-					f.iface = nh.interface;
+					f.iface = nh.netmapInterface;
 					f.iface &= frame::IFACE_ID;
 					f.iface = frame::IFACE_NOMAC;
 				} else {
@@ -105,7 +105,7 @@ void Worker::process(){
 					logDebug("There is nothing special about this frame");
 					ether_hdr->d_mac = nh.mac;
 					ether_hdr->s_mac = interface.mac;
-					f.iface = nh.interface;
+					f.iface = nh.netmapInterface;
 				}
 				egressQ->try_enqueue(f);
 			}

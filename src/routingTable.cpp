@@ -43,7 +43,6 @@ void RoutingTable::aggregate() {
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
 				newRoute.prefix_length = len;
-				newRoute.interface = uint16_t_max;
 			}
 		}
 	}
@@ -129,7 +128,7 @@ void RoutingTable::buildNextHopList(){
 			nh_abstract nh;
 			nh.nh_ip = r.next_hop;
 			nh.index = next_index++;
-			nh.interface = r.interface;
+			nh.interface = r.interface->netmapIndex;
 			r.index = nh.index;
 			nextHopMapping->push_back(nh);
 			stringstream sstream1;

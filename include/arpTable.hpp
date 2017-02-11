@@ -28,11 +28,11 @@ public:
 	/*! Describes one next Hop. */
 	struct nextHop {
 		std::array<uint8_t,6> mac {{0}}; //!< MAC address
-		uint16_t interface = uint16_t_max; //!< interface number
+		uint16_t netmapInterface = uint16_t_max; //!< interface number
 
 		static constexpr std::array<uint8_t,6> invalidMac  = {{0}};
 		operator bool(){
-			if(mac == invalidMac || interface == uint16_t_max){
+			if(mac == invalidMac || netmapInterface == uint16_t_max){
 				return false;
 			} else{
 				return true;
@@ -72,7 +72,7 @@ private:
 	std::unordered_map<uint32_t, nextHop> mapping;
 
 	// Interfaces by OS index
-	std::shared_ptr<std::vector<interface>> interfaces;
+	std::shared_ptr<std::vector<Interface>> interfaces;
 
 public:
 	/*! Create new empty ARP table.
@@ -80,7 +80,7 @@ public:
 	 *
 	 * \param interfaces Interfaces of the router
 	 */
-	ARPTable(std::shared_ptr<std::vector<interface>> interfaces)
+	ARPTable(std::shared_ptr<std::vector<Interface>> interfaces)
 	: interfaces(interfaces) {};
 
 	/*! Adapt to new routing table.

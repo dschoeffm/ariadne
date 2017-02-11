@@ -15,10 +15,10 @@ int main(int argc, char** argv){
 	(void) argc;
 	(void) argv;
 
-	auto interfaces = make_shared<vector<interface>>();
+	auto interfaces = make_shared<vector<Interface>>();
 
 	for(uint8_t i=1; i<6; i++){
-		interface iface;
+		Interface iface;
 		iface.mac = {{i,i,i,i,i,i}};
 		iface.netlinkIndex = i;
 		iface.netmapIndex = i;
@@ -51,7 +51,7 @@ int main(int argc, char** argv){
 	for(auto a : table->nextHops){
 		cout << " Next Hop:" << endl;
 		cout << "   Mac: " << mac_to_str(a.mac) << endl;
-		cout << "   Interface: " << a.interface << endl;
+		cout << "   Interface: " << a.netmapInterface << endl;
 	}
 
 	cout << endl << "Next Hop Mapping:" << endl;

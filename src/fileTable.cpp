@@ -46,7 +46,6 @@ FileTable::FileTable(string filename) {
 		route.next_hop = next_hop;
 		route.base = addr;
 		route.prefix_length = len;
-		route.interface = uint16_t_max;
 
 		(*entries)[len].push_back(route);
 	}

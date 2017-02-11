@@ -14,6 +14,7 @@
 
 #include "util.hpp"
 #include "arpTable.hpp"
+#include "interface.hpp"
 
 using nh_index = uint16_t;
 
@@ -29,16 +30,16 @@ public:
 		uint32_t base; //!< base address of the route
 		uint32_t next_hop; //!< next hop IPv4 address
 		uint32_t prefix_length; //!< prefix length of the route
-		uint16_t interface; //!< interface number
+		std::shared_ptr<Interface> interface; //!< interface number
 		nh_index index; //!< Index of the next Hop
-		static constexpr nh_index NH_INVALID  = uint16_t_max;
-		static constexpr nh_index NH_DIRECTLY_CONNECTED  = (uint16_t_max -1);
+		static constexpr nh_index NH_INVALID = uint16_t_max;
+		static constexpr nh_index NH_DIRECTLY_CONNECTED = (uint16_t_max -1);
 
 		route() :
 			base(uint32_t_max),
 			next_hop(uint32_t_max),
 			prefix_length(uint32_t_max),
-			interface(uint16_t_max),
+			interface(new struct Interface()),
 			index(NH_INVALID) {};
 
 		/*! Copy Constructor
@@ -86,7 +87,6 @@ protected:
 	virtual void updateInfo() {};
 
 private:
-	void buildNextHopList();
 	void aggregate();
 	std::unordered_set<uint16_t> interfaces;
 
@@ -123,6 +123,12 @@ public:
 		aggregate();
 		buildNextHopList();
 	};
+
+	/*! Rebuild the next hop list without updating the RIB.
+	 * This is useful in case the interface information within routes change
+	 */
+	void buildNextHopList();
+
 };
 
 #endif /* ROUTINGTABLE_HPP */
