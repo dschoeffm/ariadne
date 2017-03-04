@@ -61,7 +61,7 @@ int main(int argc, char** argv){
 		cout << "  interface: " << a.interface << endl;
 	}
 
-	assert(table->nextHops.size() == 3);
+	assert(table->nextHops.size() == 4);
 	assert(table->directlyConnected.size() == 0);
 
 	// Check if the nh_index numbers 1 & 2 are given

@@ -70,8 +70,41 @@ public:
 			entries->at(0).push_back(new_route);
 		}
 
+		// Some routes to be aggregated
+		{
+			RoutingTable::route new_route;
+			new_route.base = 0xC0A80000;
+			new_route.next_hop = 0xC0A8FF01;
+			new_route.prefix_length = 26;
+			new_route.interface = interfaces[1-1];
+			//new_route.index = 1;
+			entries->at(26).push_back(new_route);
+		}
+
+		{
+			RoutingTable::route new_route;
+			new_route.base = 0xC0A80040;
+			new_route.next_hop = 0xC0A8FF01;
+			new_route.prefix_length = 26;
+			new_route.interface = interfaces[1-1];
+			//new_route.index = 1;
+			entries->at(26).push_back(new_route);
+		}
+
+		{
+			RoutingTable::route new_route;
+			new_route.base = 0xC0A80080;
+			new_route.next_hop = 0xC0A8FF01;
+			new_route.prefix_length = 26;
+			new_route.interface = interfaces[1-1];
+			//new_route.index = 1;
+			entries->at(26).push_back(new_route);
+		}
+
 		update();
 
+		assert(this->getSortedRoutes()->at(26).size() == 1);
+		assert(this->getSortedRoutes()->at(25).size() == 1);
 		assert(this->getSortedRoutes()->at(24).size() == 5);
 		assert(this->getSortedRoutes()->at(16).size() == 3);
 		assert(this->getSortedRoutes()->at(0).size() == 1);

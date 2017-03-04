@@ -61,6 +61,18 @@ public:
 				return true;
 			}
 		};
+
+		bool operator< (const route& route) const {
+			if(prefix_length < route.prefix_length){
+				return true;
+			}
+
+			if(base < route.base){
+				return true;
+			}
+
+			return false;
+		};
 	};
 
 	struct nh_abstract {

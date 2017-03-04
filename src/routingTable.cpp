@@ -26,23 +26,26 @@ shared_ptr<vector<vector<RoutingTable::route>>> RoutingTable::getSortedRoutes() 
 void RoutingTable::aggregate() {
 	for(int len=30; len > 0; len--){
 
+		sort(entries->at(len).begin(), entries->at(len).end());
+
 		if((*entries)[len].size() < 2){
 			continue;
 		}
 
 		for(unsigned int i=0; i < (*entries)[len].size()-1; i++){
 
-			route& first = (*entries)[len][i];
-			route& second = (*entries)[len][i+1];
+			route first = (*entries)[len][i];
+			route second = (*entries)[len][i+1];
 
 			if(((first.base ^ second.base) == ((uint32_t) 1 << (32-len)))
 				&& (first.next_hop == second.next_hop)
 				&& (first.interface == second.interface)){
-				(*entries)[len].erase((*entries)[len].begin()+i, (*entries)[len].begin()+i+1);
+				(*entries)[len].erase((*entries)[len].begin()+i, (*entries)[len].begin()+i+2);
 				route newRoute;
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
-				newRoute.prefix_length = len;
+				newRoute.prefix_length = len -1;
+				entries->at(len-1).insert(entries->at(len-1).end(), newRoute);
 			}
 		}
 	}
