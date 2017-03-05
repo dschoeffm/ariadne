@@ -51,6 +51,35 @@ inline std::string mac_to_str(std::array<uint8_t, 6> mac){
 	return std::string(mac_cstr.data());
 }
 
+inline std::string int2str(int i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+/* // Same as uint32_t
+inline std::string int2str(unsigned int i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+*/
+inline std::string int2str(uint16_t i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+inline std::string int2str(uint32_t i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+inline std::string int2str(uint64_t i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+
+
 inline uint32_t extractBit(uint32_t addr, int pos) {
 	uint32_t mask = ((uint32_t) 1) << (31-pos);
 	uint32_t bit = addr & mask;

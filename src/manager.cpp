@@ -251,10 +251,8 @@ void Manager::process(){
 			netmap_ring* ring = netmapTxRings[iface][ringid];
 			uint32_t slotIdx = ring->head;
 
-			stringstream sstream;
-			sstream << "Manager::process sending frame to netmap, iface: ";
-			sstream << iface << ", slotIdx: " << slotIdx << endl;
-			logDebug(sstream.str());
+			logDebug("Manager::process sending frame to netmap, iface: "
+					+ int2str(iface) + ", slotIdx" + int2str(slotIdx));
 
 			//freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);

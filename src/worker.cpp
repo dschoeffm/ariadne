@@ -48,7 +48,7 @@ void Worker::process(){
 			return;
 		}
 
-		logDebug("Worker::process Processing packet now");
+		logDebug("Worker::process Processing packet now\n");
 
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
