@@ -11,7 +11,7 @@ void Manager::initNetmap(){
 		fatal("You need to be root in order to use Netmap!");
 	}
 
-	routingTable = make_shared<LinuxTable>();
+	routingTable = make_shared<LinuxTable>(this->interfaces);
 	//routingTable->print_table();
 	curLPM = make_shared<LPM>(*(routingTable.get()));
 
@@ -80,6 +80,8 @@ void Manager::initNetmap(){
 				bufIdx = * reinterpret_cast<uint32_t*>(NETMAP_BUF(netmapTxRings[0][0], bufIdx))){
 			freeBufs.push_back(bufIdx);
 		}
+
+		/*
 		auto it = find_if(interfaces->begin(), interfaces->end(),
 			[iface](Interface& i){
 				return i == iface;
@@ -90,8 +92,21 @@ void Manager::initNetmap(){
 		}
 
 		it->netmapIndex = iface_num;
-
 		iface_num++;
+		*/
+
+		shared_ptr<Interface> iface_ptr;
+		for(auto i : interfaces){
+			if(iface == i->name){
+				iface_ptr = i;
+				break;
+			}
+		}
+		if(iface_ptr == nullptr){
+			fatal("something went wrong: netmap interface not found in netlink context");
+		}
+
+		iface_ptr->netmapIndex = iface_num++;
 	}
 	logInfo("Interface preparations finished.\n");
 
@@ -105,9 +120,9 @@ void Manager::initNetmap(){
 	numInterfaces = netmapIfs.size();
 };
 
-std::shared_ptr<std::vector<Interface>> Manager::fillNetLink(){
-	shared_ptr<vector<Interface>> interfaces = Netlink::getAllInterfaces();
-	sort(interfaces->begin(), interfaces->end());
+std::vector<shared_ptr<Interface>> Manager::fillNetLink(){
+	vector<shared_ptr<Interface>> interfaces = Netlink::getAllInterfaces();
+	sort(interfaces.begin(), interfaces.end());
 	/*
 	uint32_t max_index = interfaces->back().netlinkIndex;
 	if(max_index != interfaces->size()){
@@ -264,7 +279,7 @@ void Manager::process(){
 }
 
 void Manager::printInterfaces(){
-	for(auto i : *interfaces){
-		logDebug(i.toString());
+	for(auto i : interfaces){
+		logDebug(i->toString());
 	}
 };

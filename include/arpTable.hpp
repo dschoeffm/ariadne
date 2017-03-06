@@ -72,7 +72,7 @@ private:
 	std::unordered_map<uint32_t, nextHop> mapping;
 
 	// Interfaces by OS index
-	std::shared_ptr<std::vector<Interface>> interfaces;
+	std::vector<std::shared_ptr<Interface>> interfaces;
 
 public:
 	/*! Create new empty ARP table.
@@ -80,7 +80,7 @@ public:
 	 *
 	 * \param interfaces Interfaces of the router
 	 */
-	ARPTable(std::shared_ptr<std::vector<Interface>> interfaces)
+	ARPTable(std::vector<std::shared_ptr<Interface>> interfaces)
 	: interfaces(interfaces) {};
 
 	/*! Adapt to new routing table.

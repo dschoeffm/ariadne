@@ -62,7 +62,7 @@ private:
 	unsigned int numInterfaces;
 
 	std::vector<std::string> interfacesToUse;
-	std::shared_ptr<std::vector<Interface>> interfaces;
+	std::vector<std::shared_ptr<Interface>> interfaces;
 
 	std::shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
@@ -80,7 +80,7 @@ private:
 
 	void process();
 
-	static std::shared_ptr<std::vector<Interface>> fillNetLink();
+	static std::vector<std::shared_ptr<Interface>> fillNetLink();
 
 	void initNetmap();
 	void startWorkerThreads();

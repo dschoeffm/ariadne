@@ -53,7 +53,18 @@ void Worker::process(){
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
-		Interface& interface = interfaces->at(f.iface & frame::IFACE_ID);
+
+		//Interface& interface = interfaces->at(f.iface & frame::IFACE_ID);
+		shared_ptr<Interface> iface_ptr;
+		for(auto i : interfaces){
+			if(i->netmapIndex == (f.iface & frame::IFACE_ID)){
+				iface_ptr = i;
+				break;
+			}
+		}
+		if(iface_ptr == nullptr){
+			fatal("something went wrong: netmap interface not found in netlink context");
+		}
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
@@ -61,7 +72,7 @@ void Worker::process(){
 				f.iface = frame::IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
-				if(count(interface.IPs.begin(), interface.IPs.end(), ipv4_hdr->d_ip)){
+				if(count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(), ipv4_hdr->d_ip)){
 					logDebug("Frame is destined at the host");
 					f.iface |= frame::IFACE_HOST;
 					continue;
@@ -107,7 +118,7 @@ void Worker::process(){
 					// Set MAC addresses
 					logDebug("There is nothing special about this frame");
 					ether_hdr->d_mac = nh.mac;
-					ether_hdr->s_mac = interface.mac;
+					ether_hdr->s_mac = iface_ptr->mac;
 					f.iface = nh.netmapInterface;
 				}
 				egressQ->try_enqueue(f);

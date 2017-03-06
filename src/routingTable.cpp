@@ -12,7 +12,7 @@ void RoutingTable::print_table(){
 		for(auto& a : (*entries)[len]){
 			stream << ip_to_str(a.base) << "/" << len
 				<< " via " << ip_to_str(a.next_hop)
-				<< " iface " << a.interface
+				<< " iface " << a.interface->name
 			    << " nh_index " << a.index << endl;
 		}
 	}
@@ -150,7 +150,7 @@ void RoutingTable::buildNextHopList(){
 	logInfo("The next hops:");
 	for(auto nh : *nextHopMapping){
 		cout << "  " << "index: " << nh.index
-			<< ", interface: " << nh.interface
+			<< ", interface: " << nh.interface->name
 			<< ", IP: " << ip_to_str(nh.nh_ip) << endl;
 	};
 

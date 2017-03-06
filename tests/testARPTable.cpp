@@ -15,18 +15,18 @@ int main(int argc, char** argv){
 	(void) argc;
 	(void) argv;
 
-	auto interfaces = make_shared<vector<Interface>>();
+	vector<shared_ptr<Interface>> interfaces;
 
 	for(uint8_t i=1; i<6; i++){
-		Interface iface;
-		iface.mac = {{i,i,i,i,i,i}};
-		iface.netlinkIndex = i;
-		iface.netmapIndex = i;
-		iface.IPs.push_back(0x0a000001 + (i << 8));
+		shared_ptr<Interface> iface = make_shared<Interface>();
+		iface->mac = {{i,i,i,i,i,i}};
+		iface->netlinkIndex = i;
+		iface->netmapIndex = i;
+		iface->IPs.push_back(0x0a000001 + (i << 8));
 		stringstream name;
 		name << "iface_" << i;
-		iface.name = name.str();
-		interfaces->push_back(iface);
+		iface->name = name.str();
+		interfaces.push_back(iface);
 	}
 
 	ARPTable arpTable(interfaces);

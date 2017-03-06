@@ -58,7 +58,19 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
-	ether_hdr->s_mac = interfaces->at(iface).mac;
+	shared_ptr<Interface> iface_ptr;
+	for(auto i : interfaces){
+		if(i->netmapIndex == iface){
+			iface_ptr = i;
+			break;
+		}
+	}
+
+	if(iface_ptr == nullptr){
+		abort();
+	}
+
+	ether_hdr->s_mac = iface_ptr->mac;
 	ether_hdr->d_mac = {{0xff}};
 
 	arp_hdr->hw_type = htons(0x0001);
@@ -67,11 +79,11 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	arp_hdr->proto_len = 4;
 	arp_hdr->op = arp::OP_REQUEST;
 
-	arp_hdr->s_hw_addr = interfaces->at(iface).mac;
-	if(interfaces->at(iface).IPs.empty()){
+	arp_hdr->s_hw_addr = iface_ptr->mac;
+	if(iface_ptr->IPs.empty()){
 		fatal("Cannot send ARP request without an IP address on interface");
 	}
-	arp_hdr->s_proto_addr = interfaces->at(iface).IPs.front();
+	arp_hdr->s_proto_addr = iface_ptr->IPs.front();
 	arp_hdr->t_hw_addr = {{0}};
 	arp_hdr->t_proto_addr = htonl(ip);
 
@@ -148,9 +160,20 @@ void ARPTable::handleRequest(frame& frame){
 		return;
 	}
 
-	Interface& interface = interfaces->at(frame.iface ^ frame::IFACE_ARP);
+	shared_ptr<Interface> iface_ptr;
+	for(auto i : interfaces){
+		if(i->netmapIndex == (frame.iface & frame::IFACE_ID)){
+			iface_ptr = i;
+			break;
+		}
+	}
+
+	if(iface_ptr == nullptr){
+		abort();
+	}
+
 	// Check if we are asked
-	if(!count(interface.IPs.begin(), interface.IPs.end(),
+	if(!count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(),
 			arp_hdr->t_proto_addr)){
 		return;
 	}
@@ -162,10 +185,10 @@ void ARPTable::handleRequest(frame& frame){
 	uint32_t t_ip = arp_hdr->t_proto_addr;
 	arp_hdr->t_proto_addr = arp_hdr->s_proto_addr;
 
-	arp_hdr->s_hw_addr = interface.mac;
+	arp_hdr->s_hw_addr = iface_ptr->mac;
 	arp_hdr->s_proto_addr = t_ip;
 
-	ether_hdr->s_mac = interface.mac;
+	ether_hdr->s_mac = iface_ptr->mac;
 	ether_hdr->d_mac = {{0xff}};
 }
 

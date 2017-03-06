@@ -43,7 +43,7 @@ private:
 	std::shared_ptr<moodycamel::ConcurrentQueue<frame>> egressQ;
 
 	// Interfaces to be used
-	std::shared_ptr<std::vector<Interface>> interfaces;
+	std::vector<std::shared_ptr<Interface>> interfaces;
 
 	// The thread this one worker works in
 	std::thread thread;
@@ -83,7 +83,7 @@ public:
 		std::shared_ptr<ARPTable::table> cur_arp_table,
 		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> ingressQ,
 		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> egressQ,
-		std::shared_ptr<std::vector<Interface>> interfaces)
+		std::vector<std::shared_ptr<Interface>> interfaces)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table),
 		new_lpm(cur_lpm), new_arp_table(cur_arp_table),
 	   	ingressQ(ingressQ), egressQ(egressQ), interfaces(interfaces),

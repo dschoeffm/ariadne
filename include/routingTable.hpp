@@ -99,11 +99,17 @@ protected:
 	 */
 	virtual void updateInfo() {};
 
-private:
 	void aggregate();
-	std::unordered_set<uint16_t> interfaces;
+	std::vector<std::shared_ptr<Interface>> interfaces;
+
 
 public:
+
+	/*! Set the interfaces on the system. */
+	void setInterfaces(std::vector<std::shared_ptr<Interface>> ifaces){
+		interfaces = ifaces;
+	}
+
 	/*! Print the routing table.
 	 * Similiar to "ip r"
 	 */
@@ -121,12 +127,6 @@ public:
 	std::shared_ptr<std::vector<nh_abstract>> getNextHopMapping(){
 		return nextHopMapping;
 	};
-
-	/*! Get the set of used interfaces.
-	 * Return the set of used interface
-	 * \return set of interfaces
-	 */
-	std::unordered_set<uint16_t> getInterfaceSet();
 
 	/*! Update the routing information.
 	 * This function updates the routing information and preprocesses it for further usage.
