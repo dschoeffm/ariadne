@@ -38,6 +38,10 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 
 	newTable->nextHops.resize(next_hop_addresses->size());
 	for(auto nh : *next_hop_addresses){
+		if(nh.interface == uint16_t_max){
+			logDebug("invalid nh interface");
+			abort();
+		}
 		newTable->nextHops[nh.index].netmapInterface = nh.interface;
 		newTable->nextHops[nh.index].mac = {{0}}; // just initialize
 		if(mapping.count(nh.nh_ip)){
