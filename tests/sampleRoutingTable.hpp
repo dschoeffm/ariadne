@@ -20,6 +20,8 @@ public:
 		// The directly connected stuff
 		for(unsigned int i=1; i<6; i++){
 			interfaces.push_back(make_shared<Interface>());
+			interfaces.back()->netlinkIndex = i;
+			interfaces.back()->netmapIndex = i;
 			RoutingTable::route new_route;
 			new_route.prefix_length = 24;
 			new_route.base = 0x0a000000 + (i << 8);

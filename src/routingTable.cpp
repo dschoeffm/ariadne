@@ -45,6 +45,8 @@ void RoutingTable::aggregate() {
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
 				newRoute.prefix_length = len -1;
+				newRoute.interface = first.interface;
+				newRoute.index = first.index;
 				entries->at(len-1).insert(entries->at(len-1).end(), newRoute);
 			}
 		}
@@ -119,6 +121,7 @@ void RoutingTable::buildNextHopList(){
 					logDebug("Next hop is found and will be used");
 					finished = true;
 					r.index = nh.index;
+					assert(r.index != route::NH_INVALID);
 					break;
 				}
 			}
@@ -143,5 +146,13 @@ void RoutingTable::buildNextHopList(){
 
 	logInfo("The routing table with the new nh indices:");
 	print_table();
+
+	logInfo("The next hops:");
+	for(auto nh : *nextHopMapping){
+		cout << "  " << "index: " <<nh.index
+			<< ", interface: " << nh.interface
+			<< ", IP: " << ip_to_str(nh.nh_ip) << endl;
+	};
+
 };
 
