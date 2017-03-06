@@ -146,7 +146,7 @@ void ARPTable::handleReply(frame& frame){
 }
 
 void ARPTable::handleRequest(frame& frame){
-	logDebug("ARPTable::handleRequest looking ar request now");
+	logDebug("ARPTable::handleRequest looking at request now");
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 

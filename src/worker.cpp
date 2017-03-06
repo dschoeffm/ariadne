@@ -88,6 +88,8 @@ void Worker::process(){
 				// Check if the index is invalid
 				if(index == RoutingTable::route::NH_INVALID){
 					fatal("next hop is invalid");
+				} else {
+					logDebug("frame will use next hop " + int2str(index));
 				}
 
 				// Look up the next hop
