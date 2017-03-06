@@ -97,9 +97,12 @@ void Worker::process(){
 				if(!nh){
 					// Let the manager handle this
 					logDebug("There is no MAC for this IP (" + ip_to_str(htonl(ipv4_hdr->d_ip)) + ")");
+					logDebug("Interface for ARP: " + int2str(nh.netmapInterface));
+					if(nh.netmapInterface == uint16_t_max){
+						abort();
+					}
 					f.iface = nh.netmapInterface;
-					f.iface &= frame::IFACE_ID;
-					f.iface = frame::IFACE_NOMAC;
+					f.iface |= frame::IFACE_NOMAC;
 				} else {
 					// Set MAC addresses
 					logDebug("There is nothing special about this frame");
