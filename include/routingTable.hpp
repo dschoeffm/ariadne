@@ -34,7 +34,8 @@ public:
 		std::shared_ptr<Interface> interface; //!< interface number
 		nh_index index; //!< Index of the next Hop
 		static constexpr nh_index NH_INVALID = uint16_t_max;
-		static constexpr nh_index NH_DIRECTLY_CONNECTED = (uint16_t_max -1);
+		static constexpr nh_index NH_DIRECTLY_CONNECTED = 0x8000;
+			//!< Flag signalling, that the nh_index contains the interface number
 
 		route() :
 			base(uint32_t_max),

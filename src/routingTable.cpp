@@ -111,6 +111,7 @@ void RoutingTable::buildNextHopList(){
 			if(r.next_hop == 0){
 				logDebug("Route is directly connected");
 				r.index = route::NH_DIRECTLY_CONNECTED;
+				r.index |= (~0xffff8000) & r.interface->netmapIndex;
 				continue;
 			}
 
