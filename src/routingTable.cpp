@@ -133,6 +133,7 @@ void RoutingTable::buildNextHopList(){
 			nh.index = next_index++;
 			nh.interface = r.interface->netmapIndex;
 			r.index = nh.index;
+			assert(r.index != route::NH_INVALID);
 			nextHopMapping->push_back(nh);
 			stringstream sstream1;
 			sstream1 << "The new next hop has the index " << r.index;

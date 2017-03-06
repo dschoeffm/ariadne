@@ -11,6 +11,7 @@
 #include <array>
 #include <stdint.h>
 #include <sstream>
+#include <cassert>
 
 #include "util.hpp"
 #include "arpTable.hpp"
