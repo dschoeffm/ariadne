@@ -5,6 +5,8 @@
 
 using namespace std;
 
+static vector<shared_ptr<Interface>>* interfaces_static;
+
 static int data_ipv4_attr_cb(const struct nlattr *attr, void *data)
 {
 	const struct nlattr **tb = static_cast<const struct nlattr **>(data);
@@ -72,7 +74,12 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 	if (!tb[RTA_OIF]){
 		fatal("route has no netlink index");
 	}
-	new_route.interface->netlinkIndex = mnl_attr_get_u32(tb[RTA_OIF]);
+	//new_route.interface->netlinkIndex = mnl_attr_get_u32(tb[RTA_OIF]);
+	for(auto i : *interfaces_static){
+		if(i->netlinkIndex == mnl_attr_get_u32(tb[RTA_OIF])){
+			new_route.interface = i;
+		}
+	}
 
 
 	if (tb[RTA_GATEWAY]) {
@@ -101,6 +108,8 @@ LinuxTable::LinuxTable(std::vector<std::shared_ptr<Interface>> ifaces){
 
 void LinuxTable::updateInfo(){
 	vector<vector<RoutingTable::route>> new_entries(33);
+
+	interfaces_static = &interfaces;
 
 	struct mnl_socket *nl;
 	char buf[MNL_SOCKET_BUFFER_SIZE];

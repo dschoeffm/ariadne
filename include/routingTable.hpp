@@ -40,7 +40,7 @@ public:
 			base(uint32_t_max),
 			next_hop(uint32_t_max),
 			prefix_length(uint32_t_max),
-			interface(new struct Interface()),
+			interface(nullptr),
 			index(NH_INVALID) {};
 
 		/*! Copy Constructor
