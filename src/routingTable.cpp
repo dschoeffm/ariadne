@@ -134,7 +134,7 @@ void RoutingTable::buildNextHopList(){
 			nh_abstract nh;
 			nh.nh_ip = r.next_hop;
 			nh.index = next_index++;
-			nh.interface = r.interface->netmapIndex;
+			nh.interface = r.interface;
 			r.index = nh.index;
 			assert(r.index != route::NH_INVALID);
 			nextHopMapping->push_back(nh);
@@ -149,7 +149,7 @@ void RoutingTable::buildNextHopList(){
 
 	logInfo("The next hops:");
 	for(auto nh : *nextHopMapping){
-		cout << "  " << "index: " <<nh.index
+		cout << "  " << "index: " << nh.index
 			<< ", interface: " << nh.interface
 			<< ", IP: " << ip_to_str(nh.nh_ip) << endl;
 	};

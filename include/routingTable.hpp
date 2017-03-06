@@ -78,7 +78,7 @@ public:
 
 	struct nh_abstract {
 		uint32_t nh_ip;
-		uint16_t interface;
+		std::shared_ptr<Interface> interface;
 		nh_index index;
 	};
 
