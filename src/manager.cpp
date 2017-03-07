@@ -258,6 +258,11 @@ void Manager::process(){
 					+ ", buf_idx: " + int2str((int) NETMAP_BUF_IDX(ring, frame.buf_ptr))
 					+ ", length: " + int2str(frame.len));
 
+			logDebug("Hexdump of frame:");
+#if DEBUG
+			neolib::hex_dump(frame.buf_ptr, frame.len, cerr);
+#endif
+
 			//freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
 			ring->slot[slotIdx].flags = NS_BUF_CHANGED;

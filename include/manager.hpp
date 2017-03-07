@@ -23,6 +23,7 @@ class Manager;
 #include "netlink.hpp"
 #include "interface.hpp"
 #include "linuxTable.hpp"
+#include "hexdump.hpp"
 
 #include <net/netmap_user.h>
 #include <sys/ioctl.h>
