@@ -174,9 +174,9 @@ void ARPTable::handleRequest(frame& frame){
 
 	// Check if we are asked
 	if(!count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(),
-			arp_hdr->t_proto_addr)){
+			ntohl(arp_hdr->t_proto_addr))){
 		logDebug("Got ARP request for some other node (IP: "
-				 + ip_to_str(arp_hdr->t_proto_addr) + "), discarding");
+				 + ip_to_str(ntohl(arp_hdr->t_proto_addr)) + "), discarding");
 		frame.iface = frame::IFACE_DISCARD;
 		return;
 	}
