@@ -208,9 +208,8 @@ void Manager::process(){
 					duration<double> diff = it->second.time - steady_clock::now();
 					if(diff.count() < 0.5){
 						// Give it a bit more time and just discard the frame
-						freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
+						frame.iface |= frame::IFACE_DISCARD;
 						logDebug("Manager::process no new ARP request");
-						continue;
 					} else {
 						// Send out a new ARP Request
 						arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
