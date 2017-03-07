@@ -81,20 +81,6 @@ void Manager::initNetmap(){
 			freeBufs.push_back(bufIdx);
 		}
 
-		/*
-		auto it = find_if(interfaces->begin(), interfaces->end(),
-			[iface](Interface& i){
-				return i == iface;
-			});
-
-		if(it == interfaces->end()){
-			fatal("something went wrong: netmap interface not found in netlink context");
-		}
-
-		it->netmapIndex = iface_num;
-		iface_num++;
-		*/
-
 		shared_ptr<Interface> iface_ptr;
 		for(auto i : interfaces){
 			if(iface == i->name){
@@ -123,22 +109,6 @@ void Manager::initNetmap(){
 std::vector<shared_ptr<Interface>> Manager::fillNetLink(){
 	vector<shared_ptr<Interface>> interfaces = Netlink::getAllInterfaces();
 	sort(interfaces.begin(), interfaces.end());
-	/*
-	uint32_t max_index = interfaces->back().netlinkIndex;
-	if(max_index != interfaces->size()){
-		for(uint32_t index=0; index<max_index; index++){
-			auto it = find_if(interfaces->begin(), interfaces->end(),
-					[index](interface& i){
-						return i == index;
-					});
-
-			if (it == interfaces->end()){
-				interfaces->emplace(interfaces->end(), index);
-			}
-		}
-	}
-	sort(interfaces->begin(), interfaces->end());
-	*/
 	return interfaces;
 };
 
