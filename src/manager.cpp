@@ -184,6 +184,7 @@ void Manager::process(){
 				logDebug("Manager::process enqueue new frame");
 
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
+				ring->slot[slotIdx].flags = NS_BUF_CHANGED;
 				freeBufs.pop_back();
 				slotIdx = nm_ring_next(ring, slotIdx);
 				ring->head = slotIdx;
@@ -251,11 +252,16 @@ void Manager::process(){
 			netmap_ring* ring = netmapTxRings[iface][ringid];
 			uint32_t slotIdx = ring->head;
 
-			logDebug("Manager::process sending frame to netmap, iface: "
-					+ int2str(iface) + ", slotIdx" + int2str(slotIdx));
+			logDebug("Manager::process sending frame to netmap \
+					   , iface: " + int2str(iface)
+					+ ", slotIdx" + int2str(slotIdx)
+					+ ", buf_idx: " + int2str((int) NETMAP_BUF_IDX(ring, frame.buf_ptr))
+					+ ", length: " + int2str(frame.len));
 
 			//freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
+			ring->slot[slotIdx].flags = NS_BUF_CHANGED;
+			ring->slot[slotIdx].len = frame.len;
 			ring->head = nm_ring_next(ring, ring->head);
 			ring->cur = ring->head;
 
