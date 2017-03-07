@@ -194,21 +194,6 @@ void Manager::process(){
 		// TODO host ring
 	}
 
-	// Run over all current MAC requests
-	/*
-	vector<ARPTable::request> requests;
-	arpTable.getRequests(requests);
-	for(auto req : requests){
-		netmap_ring* ring = netmapRxRings[req.interface][0];
-		if(nm_ring_space(ring)){
-			frame f(NETMAP_BUF(ring, ring->head), 0, req.interface);
-			arpTable.prepareRequest(req, f);
-			ring->head = nm_ring_next(ring, ring->head);
-			ring->cur = ring->head;
-		}
-	}
-	*/
-
 	// Run over all frames processed by the workers and enqueue to netmap
 	for(unsigned int worker=0; worker < numWorkers; worker++){
 		frame frame;
