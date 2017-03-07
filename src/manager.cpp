@@ -30,7 +30,7 @@ void Manager::initNetmap(){
 	int iface_num=0;
 
 	for(auto iface : interfacesToUse){
-		logInfo("Preparing interface " + iface);
+		logInfo("Manager::initNetmap Preparing interface " + iface);
 		int fd = 0;
 		fds.push_back(fd = open("/dev/netmap", O_RDWR));
 		strncpy(nmreq_root.nr_name, iface.c_str(), 16);
@@ -90,12 +90,12 @@ void Manager::initNetmap(){
 			}
 		}
 		if(iface_ptr == nullptr){
-			fatal("something went wrong: netmap interface not found in netlink context");
+			fatal("Manager::initNetmap something went wrong: netmap interface not found in netlink context");
 		}
 
 		iface_ptr->netmapIndex = iface_num++;
 	}
-	logInfo("Interface preparations finished.\n");
+	logInfo("Manager::initNetmap Interface preparations finished.\n");
 
 	for(unsigned int i=0; i<numWorkers; i++){
 		inRings.emplace_back(make_shared<ConcurrentQueue<frame>>(RING_SIZE));
@@ -237,7 +237,7 @@ void Manager::process(){
 					+ ", buf_idx: " + int2str((int) NETMAP_BUF_IDX(ring, frame.buf_ptr))
 					+ ", length: " + int2str(frame.len));
 
-			logDebug("Hexdump of frame:");
+			logDebug("Manager::process Hexdump of frame:");
 #if DEBUG
 			neolib::hex_dump(frame.buf_ptr, frame.len, cerr);
 #endif

@@ -63,17 +63,17 @@ void Worker::process(){
 			}
 		}
 		if(iface_ptr == nullptr){
-			fatal("something went wrong: netmap interface not found in netlink context");
+			fatal("Worker::process something went wrong: netmap interface not found in netlink context");
 		}
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
-				logDebug("Discarding frame - Header verification failed");
+				logDebug("Worker::process Discarding frame - Header verification failed");
 				f.iface = frame::IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
 				if(count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(), ipv4_hdr->d_ip)){
-					logDebug("Frame is destined at the host");
+					logDebug("Worker::process Frame is destined at the host");
 					f.iface |= frame::IFACE_HOST;
 					continue;
 				}
@@ -87,9 +87,9 @@ void Worker::process(){
 
 				// Check if the index is invalid
 				if(index == RoutingTable::route::NH_INVALID){
-					fatal("next hop is invalid");
+					fatal("Worker::process next hop is invalid");
 				} else {
-					logDebug("frame will use next hop " + int2strHex(index));
+					logDebug("Worker::process frame will use next hop " + int2strHex(index));
 				}
 
 				// Look up the next hop
@@ -110,8 +110,9 @@ void Worker::process(){
 				// Is the next hop valid?
 				if(!nh){
 					// Let the manager handle this
-					logDebug("There is no MAC for this IP (" + ip_to_str(htonl(ipv4_hdr->d_ip)) + ")");
-					logDebug("Interface for ARP: " + int2str(nh.netmapInterface));
+					logDebug("Worker::process There is no MAC for this IP ("
+							+ ip_to_str(htonl(ipv4_hdr->d_ip)) + ")");
+					logDebug("Worker::process Interface for ARP: " + int2str(nh.netmapInterface));
 					if(nh.netmapInterface == uint16_t_max){
 						abort();
 					}
@@ -119,7 +120,7 @@ void Worker::process(){
 					f.iface |= frame::IFACE_NOMAC;
 				} else {
 					// Set MAC addresses
-					logDebug("There is nothing special about this frame");
+					logDebug("Worker::process There is nothing special about this frame");
 					ether_hdr->d_mac = nh.mac;
 					ether_hdr->s_mac = iface_ptr->mac;
 					f.iface = nh.netmapInterface;
@@ -127,14 +128,15 @@ void Worker::process(){
 				egressQ->try_enqueue(f);
 			}
 		} else if(ether_hdr->ethertype == htons(0x0806)){
-			logDebug("This frame contains some kind of ARP payload");
+			logDebug("Worker::process This frame contains some kind of ARP payload");
 			f.iface |= frame::IFACE_ARP;
 			egressQ->try_enqueue(f);
 		} else {
 			// This router currently doesn't support L3 Protocol $foo
 			std::stringstream stream;
 			stream << std::hex << htons(ether_hdr->ethertype);
-			logDebug("L3 protocol is currently not supported, given: " + stream.str());
+			logDebug("Worker::process L3 protocol is currently not supported, given: "
+					+ stream.str());
 			f.iface = frame::IFACE_DISCARD;
 			egressQ->try_enqueue(f);
 		}
