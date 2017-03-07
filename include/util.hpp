@@ -56,13 +56,6 @@ inline std::string int2str(int i){
 	sstream << i;
 	return sstream.str();
 }
-/* // Same as uint32_t
-inline std::string int2str(unsigned int i){
-	std::stringstream sstream;
-	sstream << i;
-	return sstream.str();
-}
-*/
 inline std::string int2str(uint16_t i){
 	std::stringstream sstream;
 	sstream << i;
@@ -76,6 +69,26 @@ inline std::string int2str(uint32_t i){
 inline std::string int2str(uint64_t i){
 	std::stringstream sstream;
 	sstream << i;
+	return sstream.str();
+}
+inline std::string int2strHex(int i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+inline std::string int2strHex(uint16_t i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+inline std::string int2strHex(uint32_t i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+inline std::string int2strHex(uint64_t i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
 	return sstream.str();
 }
 
