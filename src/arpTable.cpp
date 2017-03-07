@@ -71,7 +71,9 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	}
 
 	ether_hdr->s_mac = iface_ptr->mac;
-	ether_hdr->d_mac = {{0xff}};
+	for(int i=0; i<6; i++){
+		ether_hdr->d_mac[i] = 0xff;
+	}
 
 	arp_hdr->hw_type = htons(0x0001);
 	arp_hdr->proto_type = htons(0x0800);
