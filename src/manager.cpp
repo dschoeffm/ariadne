@@ -152,6 +152,7 @@ void Manager::process(){
 
 				logDebug("Manager::process received frame from iface: " + int2str(f.iface)
 						+ ", length: " + int2str(f.len)
+						+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
 						+ ", buf_ptr: " + int2strHex((uint64_t) f.buf_ptr));
 
 				assert(inRings[worker] != NULL);
@@ -161,6 +162,8 @@ void Manager::process(){
 				ring->slot[slotIdx].buf_idx = freeBufs.back();
 				ring->slot[slotIdx].flags = NS_BUF_CHANGED;
 				freeBufs.pop_back();
+				logDebug("Manager::process replacement rx buf_idx: "
+						+ int2str(ring->slot[slotIdx].buf_idx));
 				slotIdx = nm_ring_next(ring, slotIdx);
 				ring->head = slotIdx;
 				ring->cur = slotIdx;
@@ -239,7 +242,7 @@ void Manager::process(){
 			neolib::hex_dump(frame.buf_ptr, frame.len, cerr);
 #endif
 
-			//freeBufs.push_back(ring->slot[slotIdx].buf_idx);
+			freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
 			ring->slot[slotIdx].flags = NS_BUF_CHANGED;
 			ring->slot[slotIdx].len = frame.len;
