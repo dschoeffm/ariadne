@@ -25,7 +25,7 @@ void Manager::initNetmap(){
 	nmreq_root.nr_cmd = 0;
 	nmreq_root.nr_arg1 = 0;
 	nmreq_root.nr_arg2 = 1;
-	nmreq_root.nr_arg3 = 2048;
+	nmreq_root.nr_arg3 = 256;
 
 	int iface_num=0;
 
@@ -80,6 +80,7 @@ void Manager::initNetmap(){
 				bufIdx = * reinterpret_cast<uint32_t*>(NETMAP_BUF(netmapTxRings[0][0], bufIdx))){
 			freeBufs.push_back(bufIdx);
 		}
+		logDebug("Having " + int2str(freeBufs.size()) + " free buffers at the moment");
 
 		shared_ptr<Interface> iface_ptr;
 		for(auto i : interfaces){
