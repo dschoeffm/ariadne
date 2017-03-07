@@ -175,7 +175,8 @@ void ARPTable::handleRequest(frame& frame){
 	// Check if we are asked
 	if(!count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(),
 			arp_hdr->t_proto_addr)){
-		logDebug("Got ARP request for some other node, discarding");
+		logDebug("Got ARP request for some other node (IP: "
+				 + ip_to_str(arp_hdr->t_proto_addr) + "), discarding");
 		frame.iface = frame::IFACE_DISCARD;
 		return;
 	}
@@ -191,7 +192,10 @@ void ARPTable::handleRequest(frame& frame){
 	arp_hdr->s_proto_addr = t_ip;
 
 	ether_hdr->s_mac = iface_ptr->mac;
-	ether_hdr->d_mac = {{0xff}};
+	for(int i=0; i<6; i++){
+		ether_hdr->d_mac[i] = 0xff;
+	}
+
 }
 
 void ARPTable::handleFrame(frame& frame){

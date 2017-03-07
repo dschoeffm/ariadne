@@ -259,7 +259,7 @@ void Manager::process(){
 			uint32_t slotIdx = ring->head;
 
 			logDebug("Manager::process sending frame to netmap, iface: " + int2str(iface)
-					+ ", slotIdx" + int2str(slotIdx)
+					+ ", slotIdx: " + int2str(slotIdx)
 					+ ", buf_idx: " + int2str((int) NETMAP_BUF_IDX(ring, frame.buf_ptr))
 					+ ", length: " + int2str(frame.len));
 
