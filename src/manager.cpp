@@ -179,6 +179,10 @@ void Manager::process(){
 				f.iface = iface;
 				f.vlan = 0;
 
+				logDebug("Manager::process received frame from iface: " + int2str(f.iface)
+						+ ", length: " + int2str(f.len)
+						+ ", buf_ptr: " + int2strHex((uint64_t) f.buf_ptr));
+
 				assert(inRings[worker] != NULL);
 				inRings[worker]->try_enqueue(f);
 				logDebug("Manager::process enqueue new frame");
@@ -208,11 +212,6 @@ void Manager::process(){
 				logDebug("Manager::process handling ARP frame");
 				ringid = worker;
 				arpTable.handleFrame(frame);
-			} else if(frame.iface & frame::IFACE_DISCARD){
-				// Just reclaim buffer
-				logDebug("Manager::process discarding frame");
-				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
-				continue;
 			} else if(frame.iface & frame::IFACE_NOMAC){
 				logDebug("Manager::process no MAC for target");
 				ringid = worker;
@@ -246,6 +245,13 @@ void Manager::process(){
 				}
 			} else {
 				ringid = worker;
+			}
+
+			if(frame.iface & frame::IFACE_DISCARD){
+				// Just reclaim buffer
+				logDebug("Manager::process discarding frame");
+				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
+				continue;
 			}
 
 			uint16_t iface = frame.iface & frame::IFACE_ID;
