@@ -153,7 +153,7 @@ void Manager::process(){
 				logDebug("Manager::process received frame from iface: " + int2str(f.iface)
 						+ ", length: " + int2str(f.len)
 						+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
-						+ ", buf_ptr: " + int2strHex((uint64_t) f.buf_ptr));
+						+ ", buf_ptr: 0x" + int2strHex((uint64_t) f.buf_ptr));
 
 				assert(inRings[worker] != NULL);
 				inRings[worker]->try_enqueue(f);
@@ -232,10 +232,11 @@ void Manager::process(){
 			netmap_ring* ring = netmapTxRings[iface][ringid];
 			uint32_t slotIdx = ring->head;
 
-			logDebug("Manager::process sending frame to netmap, iface: " + int2str(iface)
+			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
 					+ ", slotIdx: " + int2str(slotIdx)
 					+ ", buf_idx: " + int2str((int) NETMAP_BUF_IDX(ring, frame.buf_ptr))
-					+ ", length: " + int2str(frame.len));
+					+ ", length: " + int2str(frame.len)
+					+ ", buf_ptr: 0x" + int2strHex((uint64_t) frame.buf_ptr));
 
 			logDebug("Manager::process Hexdump of frame:");
 #if DEBUG
