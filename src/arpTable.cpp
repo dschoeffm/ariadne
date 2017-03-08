@@ -5,30 +5,6 @@ using namespace headers;
 
 constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
-#if 0
-void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
-	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
-
-	// create a new table;
-	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
-	auto next_hop_addresses = routingTable->getNextHopMapping();
-
-	// Fill in the new table
-	newTable->nextHops.resize(next_hop_addresses->size());
-	for(unsigned int i=0; i<next_hop_addresses->size(); i++){
-		auto it = mapping.find((*next_hop_addresses)[i]);
-		if(it == mapping.end()){
-			continue;
-		}
-
-		newTable->nextHops[i] = it->second;
-	}
-
-	// Set the new table as the default
-	currentTable = newTable;
-}
-#endif
-
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
 
@@ -121,17 +97,6 @@ void ARPTable::handleReply(frame& frame){
 	nextHop.netmapInterface = frame.iface & frame::IFACE_ID;
 
 	auto next_hop_addresses = routingTable->getNextHopMapping();
-#if 0
-	auto it = find(next_hop_addresses->begin(), next_hop_addresses->end(), ip);
-	if(it == next_hop_addresses->end()){
-		// This is a next hop inside the routing table
-		mapping.insert({ip, nextHop});
-		currentTable->nextHops[distance(next_hop_addresses->begin(), it)] = nextHop;
-	} else {
-		// This is a directly connected node
-		directlyConnected.insert({ip, nextHop});
-	}
-#endif
 
 	// Check if this is a registered next hop
 	for(auto& nh : *next_hop_addresses){
