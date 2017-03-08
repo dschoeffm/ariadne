@@ -19,7 +19,10 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 			abort();
 		}
 		newTable->nextHops[nh.index].netmapInterface = nh.interface->netmapIndex;
-		newTable->nextHops[nh.index].mac = {{0}}; // just initialize
+		//newTable->nextHops[nh.index].mac = {{0}}; // just initialize
+		for(int i=0; i<6; i++){
+			newTable->nextHops[nh.index].mac[i] = 0;
+		}
 		if(mapping.count(nh.nh_ip)){
 			newTable->nextHops[nh.index].mac = mapping[nh.nh_ip].mac;
 		}
@@ -62,7 +65,10 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 		fatal("Cannot send ARP request without an IP address on interface");
 	}
 	arp_hdr->s_proto_addr = iface_ptr->IPs.front();
-	arp_hdr->t_hw_addr = {{0}};
+	//arp_hdr->t_hw_addr = {{0}};
+	for(int i=0; i<6; i++){
+		arp_hdr->t_hw_addr[i] = 0;
+	}
 	arp_hdr->t_proto_addr = htonl(ip);
 
 	frame.len = sizeof(ether) + sizeof(arp);
