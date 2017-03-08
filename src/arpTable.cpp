@@ -38,7 +38,11 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 
 	newTable->nextHops.resize(next_hop_addresses->size());
 	for(auto nh : *next_hop_addresses){
-		newTable->nextHops[nh.index].interface = nh.interface;
+		if(nh.interface->netmapIndex == uint16_t_max){
+			logDebug("invalid nh interface");
+			abort();
+		}
+		newTable->nextHops[nh.index].netmapInterface = nh.interface->netmapIndex;
 		newTable->nextHops[nh.index].mac = {{0}}; // just initialize
 		if(mapping.count(nh.nh_ip)){
 			newTable->nextHops[nh.index].mac = mapping[nh.nh_ip].mac;
@@ -54,8 +58,22 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
-	ether_hdr->s_mac = interfaces->at(iface).mac;
-	ether_hdr->d_mac = {{0xff}};
+	shared_ptr<Interface> iface_ptr;
+	for(auto i : interfaces){
+		if(i->netmapIndex == iface){
+			iface_ptr = i;
+			break;
+		}
+	}
+
+	if(iface_ptr == nullptr){
+		abort();
+	}
+
+	ether_hdr->s_mac = iface_ptr->mac;
+	for(int i=0; i<6; i++){
+		ether_hdr->d_mac[i] = 0xff;
+	}
 
 	arp_hdr->hw_type = htons(0x0001);
 	arp_hdr->proto_type = htons(0x0800);
@@ -63,11 +81,11 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	arp_hdr->proto_len = 4;
 	arp_hdr->op = arp::OP_REQUEST;
 
-	arp_hdr->s_hw_addr = interfaces->at(iface).mac;
-	if(interfaces->at(iface).IPs.empty()){
+	arp_hdr->s_hw_addr = iface_ptr->mac;
+	if(iface_ptr->IPs.empty()){
 		fatal("Cannot send ARP request without an IP address on interface");
 	}
-	arp_hdr->s_proto_addr = interfaces->at(iface).IPs.front();
+	arp_hdr->s_proto_addr = iface_ptr->IPs.front();
 	arp_hdr->t_hw_addr = {{0}};
 	arp_hdr->t_proto_addr = htonl(ip);
 
@@ -100,7 +118,7 @@ void ARPTable::handleReply(frame& frame){
 	nextHop nextHop;
 
 	nextHop.mac = mac;
-	nextHop.interface = frame.iface & frame::IFACE_ID;
+	nextHop.netmapInterface = frame.iface & frame::IFACE_ID;
 
 	auto next_hop_addresses = routingTable->getNextHopMapping();
 #if 0
@@ -117,7 +135,7 @@ void ARPTable::handleReply(frame& frame){
 
 	// Check if this is a registered next hop
 	for(auto& nh : *next_hop_addresses){
-		if(nh.nh_ip == ip && nh.interface == (frame.iface & frame::IFACE_ID)){
+		if(nh.nh_ip == ip && nh.interface->netmapIndex == (frame.iface & frame::IFACE_ID)){
 			mapping.insert({ip, nextHop});
 			currentTable->nextHops[nh.index].mac = mac;
 
@@ -130,7 +148,7 @@ void ARPTable::handleReply(frame& frame){
 }
 
 void ARPTable::handleRequest(frame& frame){
-	logDebug("ARPTable::handleRequest looking ar request now");
+	logDebug("ARPTable::handleRequest looking at request now");
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
@@ -144,10 +162,24 @@ void ARPTable::handleRequest(frame& frame){
 		return;
 	}
 
-	interface& interface = interfaces->at(frame.iface ^ frame::IFACE_ARP);
+	shared_ptr<Interface> iface_ptr;
+	for(auto i : interfaces){
+		if(i->netmapIndex == (frame.iface & frame::IFACE_ID)){
+			iface_ptr = i;
+			break;
+		}
+	}
+
+	if(iface_ptr == nullptr){
+		abort();
+	}
+
 	// Check if we are asked
-	if(!count(interface.IPs.begin(), interface.IPs.end(),
-			arp_hdr->t_proto_addr)){
+	if(!count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(),
+			ntohl(arp_hdr->t_proto_addr))){
+		logDebug("Got ARP request for some other node (IP: "
+				 + ip_to_str(ntohl(arp_hdr->t_proto_addr)) + "), discarding");
+		frame.iface = frame::IFACE_DISCARD;
 		return;
 	}
 
@@ -158,11 +190,14 @@ void ARPTable::handleRequest(frame& frame){
 	uint32_t t_ip = arp_hdr->t_proto_addr;
 	arp_hdr->t_proto_addr = arp_hdr->s_proto_addr;
 
-	arp_hdr->s_hw_addr = interface.mac;
+	arp_hdr->s_hw_addr = iface_ptr->mac;
 	arp_hdr->s_proto_addr = t_ip;
 
-	ether_hdr->s_mac = interface.mac;
-	ether_hdr->d_mac = {{0xff}};
+	ether_hdr->s_mac = iface_ptr->mac;
+	for(int i=0; i<6; i++){
+		ether_hdr->d_mac[i] = 0xff;
+	}
+
 }
 
 void ARPTable::handleFrame(frame& frame){

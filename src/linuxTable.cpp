@@ -5,6 +5,8 @@
 
 using namespace std;
 
+static vector<shared_ptr<Interface>>* interfaces_static;
+
 static int data_ipv4_attr_cb(const struct nlattr *attr, void *data)
 {
 	const struct nlattr **tb = static_cast<const struct nlattr **>(data);
@@ -63,11 +65,22 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 		new_route.base = 0;
 	}
 
+	/*
 	if (tb[RTA_OIF]) {
-		new_route.interface = mnl_attr_get_u32(tb[RTA_OIF]);
-	} else {
-		new_route.interface = uint16_t_max;
+		new_route.interface->netlinkIndex = mnl_attr_get_u32(tb[RTA_OIF]);
 	}
+	*/
+
+	if (!tb[RTA_OIF]){
+		fatal("route has no netlink index");
+	}
+	//new_route.interface->netlinkIndex = mnl_attr_get_u32(tb[RTA_OIF]);
+	for(auto i : *interfaces_static){
+		if(i->netlinkIndex == mnl_attr_get_u32(tb[RTA_OIF])){
+			new_route.interface = i;
+		}
+	}
+
 
 	if (tb[RTA_GATEWAY]) {
 		uint32_t* next_hop = static_cast<uint32_t*>(mnl_attr_get_payload(tb[RTA_GATEWAY]));
@@ -87,13 +100,16 @@ static int data_cb_new(const struct nlmsghdr *nlh, void *data)
 	return MNL_CB_OK;
 }
 
-LinuxTable::LinuxTable(){
+LinuxTable::LinuxTable(std::vector<std::shared_ptr<Interface>> ifaces){
+	setInterfaces(ifaces);
 	update();
 };
 
 
 void LinuxTable::updateInfo(){
 	vector<vector<RoutingTable::route>> new_entries(33);
+
+	interfaces_static = &interfaces;
 
 	struct mnl_socket *nl;
 	char buf[MNL_SOCKET_BUFFER_SIZE];
@@ -136,6 +152,18 @@ void LinuxTable::updateInfo(){
 	}
 
 	mnl_socket_close(nl);
+
+	// Map to the correct ifaces
+	for(auto& a : new_entries){
+		for(auto& r : a){
+			for(auto iface : interfaces){
+				if(r.interface->netlinkIndex == iface->netmapIndex){
+					r.interface = iface;
+					break;
+				}
+			}
+		}
+	};
 
 	swap(new_entries, *entries);
 }

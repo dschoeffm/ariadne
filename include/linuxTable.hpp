@@ -28,7 +28,7 @@ protected:
 public:
 	/*! Create a new kernel based routing table
 	 */
-	LinuxTable();
+	LinuxTable(std::vector<std::shared_ptr<Interface>> ifaces);
 };
 
 #endif /* LINUX_HPP */

@@ -11,9 +11,11 @@
 #include <array>
 #include <stdint.h>
 #include <sstream>
+#include <cassert>
 
 #include "util.hpp"
 #include "arpTable.hpp"
+#include "interface.hpp"
 
 using nh_index = uint16_t;
 
@@ -29,16 +31,17 @@ public:
 		uint32_t base; //!< base address of the route
 		uint32_t next_hop; //!< next hop IPv4 address
 		uint32_t prefix_length; //!< prefix length of the route
-		uint16_t interface; //!< interface number
+		std::shared_ptr<Interface> interface; //!< interface number
 		nh_index index; //!< Index of the next Hop
-		static constexpr nh_index NH_INVALID  = uint16_t_max;
-		static constexpr nh_index NH_DIRECTLY_CONNECTED  = (uint16_t_max -1);
+		static constexpr nh_index NH_INVALID = uint16_t_max;
+		static constexpr nh_index NH_DIRECTLY_CONNECTED = 0x8000;
+			//!< Flag signalling, that the nh_index contains the interface number
 
 		route() :
 			base(uint32_t_max),
 			next_hop(uint32_t_max),
 			prefix_length(uint32_t_max),
-			interface(uint16_t_max),
+			interface(nullptr),
 			index(NH_INVALID) {};
 
 		/*! Copy Constructor
@@ -60,11 +63,23 @@ public:
 				return true;
 			}
 		};
+
+		bool operator< (const route& route) const {
+			if(prefix_length < route.prefix_length){
+				return true;
+			}
+
+			if(base < route.base){
+				return true;
+			}
+
+			return false;
+		};
 	};
 
 	struct nh_abstract {
 		uint32_t nh_ip;
-		uint16_t interface;
+		std::shared_ptr<Interface> interface;
 		nh_index index;
 	};
 
@@ -85,12 +100,17 @@ protected:
 	 */
 	virtual void updateInfo() {};
 
-private:
-	void buildNextHopList();
 	void aggregate();
-	std::unordered_set<uint16_t> interfaces;
+	std::vector<std::shared_ptr<Interface>> interfaces;
+
 
 public:
+
+	/*! Set the interfaces on the system. */
+	void setInterfaces(std::vector<std::shared_ptr<Interface>> ifaces){
+		interfaces = ifaces;
+	}
+
 	/*! Print the routing table.
 	 * Similiar to "ip r"
 	 */
@@ -109,12 +129,6 @@ public:
 		return nextHopMapping;
 	};
 
-	/*! Get the set of used interfaces.
-	 * Return the set of used interface
-	 * \return set of interfaces
-	 */
-	std::unordered_set<uint16_t> getInterfaceSet();
-
 	/*! Update the routing information.
 	 * This function updates the routing information and preprocesses it for further usage.
 	 */
@@ -123,6 +137,12 @@ public:
 		aggregate();
 		buildNextHopList();
 	};
+
+	/*! Rebuild the next hop list without updating the RIB.
+	 * This is useful in case the interface information within routes change
+	 */
+	void buildNextHopList();
+
 };
 
 #endif /* ROUTINGTABLE_HPP */

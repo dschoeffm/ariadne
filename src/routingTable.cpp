@@ -12,7 +12,7 @@ void RoutingTable::print_table(){
 		for(auto& a : (*entries)[len]){
 			stream << ip_to_str(a.base) << "/" << len
 				<< " via " << ip_to_str(a.next_hop)
-				<< " iface " << a.interface
+				<< " iface " << a.interface->name
 			    << " nh_index " << a.index << endl;
 		}
 	}
@@ -26,24 +26,28 @@ shared_ptr<vector<vector<RoutingTable::route>>> RoutingTable::getSortedRoutes() 
 void RoutingTable::aggregate() {
 	for(int len=30; len > 0; len--){
 
+		sort(entries->at(len).begin(), entries->at(len).end());
+
 		if((*entries)[len].size() < 2){
 			continue;
 		}
 
 		for(unsigned int i=0; i < (*entries)[len].size()-1; i++){
 
-			route& first = (*entries)[len][i];
-			route& second = (*entries)[len][i+1];
+			route first = (*entries)[len][i];
+			route second = (*entries)[len][i+1];
 
 			if(((first.base ^ second.base) == ((uint32_t) 1 << (32-len)))
 				&& (first.next_hop == second.next_hop)
 				&& (first.interface == second.interface)){
-				(*entries)[len].erase((*entries)[len].begin()+i, (*entries)[len].begin()+i+1);
+				(*entries)[len].erase((*entries)[len].begin()+i, (*entries)[len].begin()+i+2);
 				route newRoute;
 				newRoute.base = first.base & (~(1 << (32-len)));
 				newRoute.next_hop = first.next_hop;
-				newRoute.prefix_length = len;
-				newRoute.interface = uint16_t_max;
+				newRoute.prefix_length = len -1;
+				newRoute.interface = first.interface;
+				newRoute.index = first.index;
+				entries->at(len-1).insert(entries->at(len-1).end(), newRoute);
 			}
 		}
 	}
@@ -107,6 +111,7 @@ void RoutingTable::buildNextHopList(){
 			if(r.next_hop == 0){
 				logDebug("Route is directly connected");
 				r.index = route::NH_DIRECTLY_CONNECTED;
+				r.index |= (~0xffff8000) & r.interface->netmapIndex;
 				continue;
 			}
 
@@ -117,6 +122,7 @@ void RoutingTable::buildNextHopList(){
 					logDebug("Next hop is found and will be used");
 					finished = true;
 					r.index = nh.index;
+					assert(r.index != route::NH_INVALID);
 					break;
 				}
 			}
@@ -131,6 +137,7 @@ void RoutingTable::buildNextHopList(){
 			nh.index = next_index++;
 			nh.interface = r.interface;
 			r.index = nh.index;
+			assert(r.index != route::NH_INVALID);
 			nextHopMapping->push_back(nh);
 			stringstream sstream1;
 			sstream1 << "The new next hop has the index " << r.index;
@@ -140,5 +147,13 @@ void RoutingTable::buildNextHopList(){
 
 	logInfo("The routing table with the new nh indices:");
 	print_table();
+
+	logInfo("The next hops:");
+	for(auto nh : *nextHopMapping){
+		cout << "  " << "index: " << nh.index
+			<< ", interface: " << nh.interface->name
+			<< ", IP: " << ip_to_str(nh.nh_ip) << endl;
+	};
+
 };
 

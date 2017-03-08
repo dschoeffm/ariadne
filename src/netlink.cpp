@@ -13,19 +13,33 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 {
 	struct ifaddrmsg *ifa = (struct ifaddrmsg *) mnl_nlmsg_get_payload(nlh);
 	struct nlattr *attr;
-	vector<interface>* interfaces = static_cast<vector<interface>*>(data);
+	vector<shared_ptr<Interface>>* interfaces = static_cast<vector<shared_ptr<Interface>>*>(data);
 	uint32_t index = ifa->ifa_index;
 
+	/*
 	auto it = find_if(interfaces->begin(), interfaces->end(),
-			[index](interface& i){
+			[index](Interface& i){
 				return i.netlinkIndex == index;
 			});
 
-	interface& interface =
+	shared_ptr<Interface>& interface =
 		(it == interfaces->end())
 		? *interfaces->emplace(interfaces->end())
 		: *it;
-	interface.netlinkIndex = index;
+	interface->netlinkIndex = index;
+	*/
+
+	shared_ptr<Interface> iface_ptr;
+	for(auto i : *interfaces){
+		if(i->netlinkIndex == index){
+			iface_ptr = i;
+		}
+	}
+	if(iface_ptr == nullptr){
+		interfaces->push_back(make_shared<Interface>());
+		iface_ptr = interfaces->back();
+		iface_ptr->netlinkIndex = index;
+	}
 
 	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifa)) {
 		int type = mnl_attr_get_type(attr);
@@ -40,14 +54,14 @@ static int data_cb_ip(const struct nlmsghdr *nlh, void *data)
 				logErr("mnl_attr_validate() failed");
 				return MNL_CB_ERROR;
 			}
-			interface.IPs.push_back(htonl(mnl_attr_get_u32(attr)));
+			iface_ptr->IPs.push_back(htonl(mnl_attr_get_u32(attr)));
 			break;
 		case IFA_LABEL:
 			if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
 				logErr("mnl_attr_validate() failed");
 				return MNL_CB_ERROR;
 			}
-			interface.name = mnl_attr_get_str(attr);
+			iface_ptr->name = mnl_attr_get_str(attr);
 			break;
 		}
 	}
@@ -61,22 +75,38 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 	struct ifinfomsg *ifm = (struct ifinfomsg*) mnl_nlmsg_get_payload(nlh);
 	struct nlattr *attr;
 
-	vector<interface>* interfaces = static_cast<vector<interface>*>(data);
+	vector<shared_ptr<Interface>>* interfaces = static_cast<vector<shared_ptr<Interface>>*>(data);
 	uint32_t index = ifm->ifi_index;
 
+	/*
 	auto it = find_if(interfaces->begin(), interfaces->end(),
-			[index](interface& i){
+			[index](Interface& i){
 				return i.netlinkIndex == index;
 			});
 
-	interface& interface =
+	shared_ptr<Interface>& interface =
 		(it == interfaces->end())
 		? *interfaces->emplace(interfaces->end())
 		: *it;
-	interface.netlinkIndex = index;
-	interface.name = "noname";
-	interface.mac = {{0}};
+	interface->netlinkIndex = index;
+	interface->name = "noname";
+	interface->mac = {{0}};
 	//interface.IPs.resize(0);
+	*/
+
+	shared_ptr<Interface> iface_ptr;
+	for(auto i : *interfaces){
+		if(i->netlinkIndex == index){
+			iface_ptr = i;
+		}
+	}
+	if(iface_ptr == nullptr){
+		interfaces->push_back(make_shared<Interface>());
+		iface_ptr = interfaces->back();
+		iface_ptr->netlinkIndex = index;
+		iface_ptr->name = "noname";
+		iface_ptr->mac = {{0}};
+	}
 
 	mnl_attr_for_each_cpp(attr, nlh, sizeof(*ifm)) {
 		int type = mnl_attr_get_type(attr);
@@ -87,14 +117,14 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 
 		switch(type) {
 		case IFLA_ADDRESS:
-			memcpy(&interface.mac, RTA_DATA(attr), 6);
+			memcpy(&iface_ptr->mac, RTA_DATA(attr), 6);
 			break;
 		case IFA_LABEL:
 			if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
 				logErr("mnl_attr_validate() failed");
 				return MNL_CB_ERROR;
 			}
-			interface.name = mnl_attr_get_str(attr);
+			iface_ptr->name = mnl_attr_get_str(attr);
 			break;
 
 		}
@@ -105,7 +135,7 @@ static int data_cb_link(const struct nlmsghdr *nlh, void *data) {
 
 // Adapted from:
 // https://git.netfilter.org/libmnl/plain/examples/rtnl/rtnl-link-dump3.c
-shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
+vector<shared_ptr<Interface>> Netlink::getAllInterfaces() {
 	struct mnl_socket *nl;
 	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct nlmsghdr *nlh;
@@ -113,7 +143,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	int ret;
 	unsigned int seq, portid;
 
-	shared_ptr<vector<interface>> interfaces = make_shared<vector<interface>>();
+	vector<shared_ptr<Interface>> interfaces;
 
 	// Open NL socket
 	nl = mnl_socket_open(NETLINK_ROUTE);
@@ -140,7 +170,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_ip, interfaces.get());
+		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_ip, &interfaces);
 		if (ret <= MNL_CB_STOP)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -163,7 +193,7 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 
 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
 	while (ret > 0) {
-		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_link, interfaces.get());
+		ret = mnl_cb_run(buf, ret, seq, portid, data_cb_link, &interfaces);
 		if (ret <= MNL_CB_STOP)
 			break;
 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
@@ -177,12 +207,12 @@ shared_ptr<vector<interface>> Netlink::getAllInterfaces() {
 	stringstream sstream;
 
 	sstream << "Interfaces:" << endl;
-	for(auto i : *interfaces){
-		sstream << "\tName: " << i.name << endl;
-		sstream << "\tMAC address: " << mac_to_str(i.mac) << endl;
-		sstream << "\tNetlink Index: " << i.netlinkIndex << endl;
+	for(auto i : interfaces){
+		sstream << "\tName: " << i->name << endl;
+		sstream << "\tMAC address: " << mac_to_str(i->mac) << endl;
+		sstream << "\tNetlink Index: " << i->netlinkIndex << endl;
 		sstream << "\tIP addresses: ";
-		for(auto ip : i.IPs) {
+		for(auto ip : i->IPs) {
 			sstream << ip_to_str(ip) << endl << "\t              ";
 		}
 		sstream << endl;

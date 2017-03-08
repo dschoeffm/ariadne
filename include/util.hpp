@@ -51,6 +51,48 @@ inline std::string mac_to_str(std::array<uint8_t, 6> mac){
 	return std::string(mac_cstr.data());
 }
 
+inline std::string int2str(int i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+inline std::string int2str(uint16_t i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+inline std::string int2str(uint32_t i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+inline std::string int2str(uint64_t i){
+	std::stringstream sstream;
+	sstream << i;
+	return sstream.str();
+}
+inline std::string int2strHex(int i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+inline std::string int2strHex(uint16_t i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+inline std::string int2strHex(uint32_t i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+inline std::string int2strHex(uint64_t i){
+	std::stringstream sstream;
+	sstream << std::hex << i;
+	return sstream.str();
+}
+
+
 inline uint32_t extractBit(uint32_t addr, int pos) {
 	uint32_t mask = ((uint32_t) 1) << (31-pos);
 	uint32_t bit = addr & mask;
@@ -77,17 +119,21 @@ inline void parseMac(const char* str, uint8_t mac[6]){
 }
 
 inline uint16_t IPv4HdrChecksum(headers::ipv4* header){
-	uint16_t result = 0;
+	uint32_t result = 0;
 	uint16_t* hdr_cast = reinterpret_cast<uint16_t*>(header);
 
 	uint16_t orig_checksum = header->checksum;
 	header->checksum = 0;
 	for(uint8_t i=0; i<(header->ihl() *2); i++){
-		result += ~(hdr_cast[i]);
+		result += ntohs(hdr_cast[i]);
+		if(result & (1<<16)){
+			result &= 0xffff;
+			result++;
+		}
 	}
 
 	header->checksum = orig_checksum;
-	return (~result);
+	return htons(~result);
 };
 
 template<typename T>

@@ -23,6 +23,7 @@ class Manager;
 #include "netlink.hpp"
 #include "interface.hpp"
 #include "linuxTable.hpp"
+#include "hexdump.hpp"
 
 #include <net/netmap_user.h>
 #include <sys/ioctl.h>
@@ -62,7 +63,7 @@ private:
 	unsigned int numInterfaces;
 
 	std::vector<std::string> interfacesToUse;
-	std::shared_ptr<std::vector<interface>> interfaces;
+	std::vector<std::shared_ptr<Interface>> interfaces;
 
 	std::shared_ptr<RoutingTable> routingTable;
 	ARPTable arpTable;
@@ -80,7 +81,7 @@ private:
 
 	void process();
 
-	static std::shared_ptr<std::vector<interface>> fillNetLink();
+	static std::vector<std::shared_ptr<Interface>> fillNetLink();
 
 	void initNetmap();
 	void startWorkerThreads();
@@ -106,17 +107,21 @@ public:
 		initNetmap();
 		startWorkerThreads();
 		state.store(RUN);
+		printInterfaces();
 		while(state.load() == RUN){
 			process();
 		}
 	}
 
-	/*! Stops the router
+	/*! Stops the router.
 	 * This function gracefully stops the router
 	 */
 	void stop(){
 		state.store(STOP);
 	}
+
+	/*! Print all the information about all interfaces. */
+	void printInterfaces();
 };
 
 #endif /* MANAGER_HPP */

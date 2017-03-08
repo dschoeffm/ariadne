@@ -11,8 +11,8 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 
 	// Step 2
 	if(IPv4HdrChecksum(ipv4_hdr) != ipv4_hdr->checksum){
-		cerr << "IPv4 verification failed" << endl;
-		//return false;
+		logDebug("IPv4 verification failed");
+		return false;
 	}
 
 	// Step 3
@@ -48,21 +48,32 @@ void Worker::process(){
 			return;
 		}
 
-		logDebug("Processing packet now");
+		logDebug("Worker::process Processing packet now\n");
 
 		// Cast all the things
 		ether* ether_hdr = reinterpret_cast<ether*>(f.buf_ptr);
 		ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(f.buf_ptr + sizeof(ether));
-		interface& interface = interfaces->at(f.iface);
+
+		//Interface& interface = interfaces->at(f.iface & frame::IFACE_ID);
+		shared_ptr<Interface> iface_ptr;
+		for(auto i : interfaces){
+			if(i->netmapIndex == (f.iface & frame::IFACE_ID)){
+				iface_ptr = i;
+				break;
+			}
+		}
+		if(iface_ptr == nullptr){
+			fatal("Worker::process something went wrong: netmap interface not found in netlink context");
+		}
 
 		if(ether_hdr->ethertype == htons(0x0800)){
 			if(!IPv4HdrVerification(ipv4_hdr, f.len)){
-				logDebug("Discarding frame - Header verification failed");
+				logDebug("Worker::process Discarding frame - Header verification failed");
 				f.iface = frame::IFACE_DISCARD;
 			} else {
 				// Check if the packet is targeted at the router
-				if(count(interface.IPs.begin(), interface.IPs.end(), ipv4_hdr->d_ip)){
-					logDebug("Frame is destined at the host");
+				if(count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(), ipv4_hdr->d_ip)){
+					logDebug("Worker::process Frame is destined at the host");
 					f.iface |= frame::IFACE_HOST;
 					continue;
 				}
@@ -76,12 +87,14 @@ void Worker::process(){
 
 				// Check if the index is invalid
 				if(index == RoutingTable::route::NH_INVALID){
-					fatal("next hop is invalid");
+					fatal("Worker::process next hop is invalid");
+				} else {
+					logDebug("Worker::process frame will use next hop " + int2strHex(index));
 				}
 
 				// Look up the next hop
 				ARPTable::nextHop nh;
-				if(index != RoutingTable::route::NH_DIRECTLY_CONNECTED){
+				if(!(index & RoutingTable::route::NH_DIRECTLY_CONNECTED)){
 					nh = cur_arp_table->nextHops[index];
 				} else {
 					//nh = cur_arp_table->directlyConnected.at(ntohl(ipv4_hdr->d_ip));
@@ -90,34 +103,40 @@ void Worker::process(){
 						nh = it->second;
 					} else {
 						nh.mac = ARPTable::nextHop::invalidMac;
+						nh.netmapInterface = index ^ RoutingTable::route::NH_DIRECTLY_CONNECTED;
 					}
 				}
 
 				// Is the next hop valid?
 				if(!nh){
 					// Let the manager handle this
-					logDebug("There is no MAC for this IP");
-					f.iface = nh.interface;
-					f.iface &= frame::IFACE_ID;
-					f.iface = frame::IFACE_NOMAC;
+					logDebug("Worker::process There is no MAC for this IP ("
+							+ ip_to_str(htonl(ipv4_hdr->d_ip)) + ")");
+					logDebug("Worker::process Interface for ARP: " + int2str(nh.netmapInterface));
+					if(nh.netmapInterface == uint16_t_max){
+						abort();
+					}
+					f.iface = nh.netmapInterface;
+					f.iface |= frame::IFACE_NOMAC;
 				} else {
 					// Set MAC addresses
-					logDebug("There is nothing special about this frame");
+					logDebug("Worker::process There is nothing special about this frame");
 					ether_hdr->d_mac = nh.mac;
-					ether_hdr->s_mac = interface.mac;
-					f.iface = nh.interface;
+					ether_hdr->s_mac = iface_ptr->mac;
+					f.iface = nh.netmapInterface;
 				}
 				egressQ->try_enqueue(f);
 			}
 		} else if(ether_hdr->ethertype == htons(0x0806)){
-			logDebug("This frame contains some kind of ARP payload");
+			logDebug("Worker::process This frame contains some kind of ARP payload");
 			f.iface |= frame::IFACE_ARP;
 			egressQ->try_enqueue(f);
 		} else {
 			// This router currently doesn't support L3 Protocol $foo
 			std::stringstream stream;
 			stream << std::hex << htons(ether_hdr->ethertype);
-			logDebug("L3 protocol is currently not supported, given: " + stream.str());
+			logDebug("Worker::process L3 protocol is currently not supported, given: "
+					+ stream.str());
 			f.iface = frame::IFACE_DISCARD;
 			egressQ->try_enqueue(f);
 		}

@@ -22,8 +22,8 @@ void testLPM(){
 	assert(lpm.route(0x30000123) == 2);
 	assert(lpm.route(0x11111111) == 0);
 	assert(lpm.route(0xeeeeeeee) == 0);
-	assert(lpm.route(0x0a000330) == RoutingTable::route::NH_DIRECTLY_CONNECTED);
-	assert(lpm.route(0x0a000110) == RoutingTable::route::NH_DIRECTLY_CONNECTED);
-	assert(lpm.route(0x0a000500) == RoutingTable::route::NH_DIRECTLY_CONNECTED);
+	assert(lpm.route(0x0a000330) & RoutingTable::route::NH_DIRECTLY_CONNECTED);
+	assert(lpm.route(0x0a000110) & RoutingTable::route::NH_DIRECTLY_CONNECTED);
+	assert(lpm.route(0x0a000500) & RoutingTable::route::NH_DIRECTLY_CONNECTED);
 
 };
