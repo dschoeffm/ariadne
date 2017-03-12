@@ -7,6 +7,7 @@ constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
+	this->routingTable = routingTable;
 
 	// create a new table;
 	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
