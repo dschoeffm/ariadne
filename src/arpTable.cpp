@@ -53,23 +53,23 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	for(int i=0; i<6; i++){
 		ether_hdr->d_mac[i] = 0xff;
 	}
+	ether_hdr->ethertype = htons(0x0806);
 
 	arp_hdr->hw_type = htons(0x0001);
 	arp_hdr->proto_type = htons(0x0800);
 	arp_hdr->hw_len = 6;
 	arp_hdr->proto_len = 4;
-	arp_hdr->op = arp::OP_REQUEST;
+	arp_hdr->op = htons(arp::OP_REQUEST);
 
 	arp_hdr->s_hw_addr = iface_ptr->mac;
 	if(iface_ptr->IPs.empty()){
 		fatal("Cannot send ARP request without an IP address on interface");
 	}
-	arp_hdr->s_proto_addr = iface_ptr->IPs.front();
-	//arp_hdr->t_hw_addr = {{0}};
+	arp_hdr->s_proto_addr = htonl(iface_ptr->IPs.front());
 	for(int i=0; i<6; i++){
 		arp_hdr->t_hw_addr[i] = 0;
 	}
-	arp_hdr->t_proto_addr = htonl(ip);
+	arp_hdr->t_proto_addr = ip;
 
 	frame.len = sizeof(ether) + sizeof(arp);
 }
