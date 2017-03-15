@@ -140,38 +140,43 @@ void Manager::process(){
 		// netmap rings
 		for(unsigned int worker=0; worker < numWorkers; worker++){
 			netmap_ring* ring = netmapRxRings[iface][worker];
-			uint32_t numFrames = nm_ring_space(ring);
-			numFrames = min(numFrames, (uint32_t) freeBufs.size());
-			uint32_t slotIdx = ring->head;
+			while(nm_ring_space(ring)){
+				uint32_t numFrames = nm_ring_space(ring);
+				numFrames = min(numFrames, (uint32_t) freeBufs.size());
+#define MANAGER_BULK_SIZE 64
+				if(numFrames > MANAGER_BULK_SIZE){
+					numFrames = MANAGER_BULK_SIZE;
+				}
+				uint32_t slotIdx = ring->head;
+				frame f[MANAGER_BULK_SIZE];
+				for(uint32_t i=0; i<numFrames; i++){
 
-			for(uint32_t frameIdx=0; frameIdx < numFrames; frameIdx++){
-				frame f;
-				f.buf_ptr = reinterpret_cast<uint8_t*>(
-						NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx));
-				f.len = ring->slot[slotIdx].len;
-				f.iface = iface;
-				f.vlan = 0;
+					f[i].buf_ptr = reinterpret_cast<uint8_t*>(
+							NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx));
+					f[i].len = ring->slot[slotIdx].len;
+					f[i].iface = iface;
+					f[i].vlan = 0;
 
-				logDebug("Manager::process received frame from iface: " + int2str(f.iface)
-						+ ", length: " + int2str(f.len)
-						+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
-						+ ", buf_ptr: 0x" + int2strHex((uint64_t) f.buf_ptr));
+					logDebug("Manager::process received frame from iface: " + int2str(f[i].iface)
+							+ ", length: " + int2str(f[i].len)
+							+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
+							+ ", buf_ptr: 0x" + int2strHex((uint64_t) f[i].buf_ptr));
 
-				assert(inRings[worker] != NULL);
-				inRings[worker]->try_enqueue(f);
-				logDebug("Manager::process enqueue new frame");
+					ring->slot[slotIdx].buf_idx = freeBufs.back();
+					ring->slot[slotIdx].flags = NS_BUF_CHANGED;
+					freeBufs.pop_back();
+					logDebug("Manager::process replacement rx buf_idx: "
+							+ int2str(ring->slot[slotIdx].buf_idx));
 
-				ring->slot[slotIdx].buf_idx = freeBufs.back();
-				ring->slot[slotIdx].flags = NS_BUF_CHANGED;
-				freeBufs.pop_back();
-				logDebug("Manager::process replacement rx buf_idx: "
-						+ int2str(ring->slot[slotIdx].buf_idx));
-				slotIdx = nm_ring_next(ring, slotIdx);
-				ring->head = slotIdx;
-				ring->cur = slotIdx;
+					slotIdx = nm_ring_next(ring, slotIdx);
+					ring->head = slotIdx;
+					ring->cur = slotIdx;
+				}
+
+				inRings[worker]->try_enqueue_bulk(f, numFrames);
+				logDebug("Manager::process enqueue new frames");
 			}
 		}
-
 		// TODO host ring
 	}
 
