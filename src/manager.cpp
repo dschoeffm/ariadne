@@ -14,7 +14,6 @@ void Manager::initNetmap(){
 
 	routingTable = make_shared<LinuxTable>(this->interfaces);
 	//routingTable->print_table();
-	curLPM = make_shared<LPM>(*(routingTable.get()));
 
 	nmreq_root.nr_version = NETMAP_API;
 	nmreq_root.nr_tx_slots = 2048;
@@ -107,6 +106,8 @@ void Manager::initNetmap(){
 	routingTable->buildNextHopList();
 	routingTable->print_table();
 	numInterfaces = netmapIfs.size();
+
+	curLPM = make_shared<LPM>(*(routingTable.get()));
 };
 
 std::vector<shared_ptr<Interface>> Manager::fillNetLink(){
