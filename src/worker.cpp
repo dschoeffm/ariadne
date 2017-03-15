@@ -88,6 +88,7 @@ void Worker::process(){
 
 					// Route the packet
 					nh_index index = cur_lpm->route(ntohl(ipv4_hdr->d_ip));
+					logDebug("Worker::process nh_index: " + int2strHex(index));
 
 					// Check if the index is invalid
 					if(index == RoutingTable::route::NH_INVALID){
