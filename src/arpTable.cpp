@@ -5,32 +5,9 @@ using namespace headers;
 
 constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
-#if 0
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
-
-	// create a new table;
-	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
-	auto next_hop_addresses = routingTable->getNextHopMapping();
-
-	// Fill in the new table
-	newTable->nextHops.resize(next_hop_addresses->size());
-	for(unsigned int i=0; i<next_hop_addresses->size(); i++){
-		auto it = mapping.find((*next_hop_addresses)[i]);
-		if(it == mapping.end()){
-			continue;
-		}
-
-		newTable->nextHops[i] = it->second;
-	}
-
-	// Set the new table as the default
-	currentTable = newTable;
-}
-#endif
-
-void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
-	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
+	this->routingTable = routingTable;
 
 	// create a new table;
 	shared_ptr<table> newTable = make_shared<table>(std::vector<nextHop>(), directlyConnected);
@@ -43,7 +20,10 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 			abort();
 		}
 		newTable->nextHops[nh.index].netmapInterface = nh.interface->netmapIndex;
-		newTable->nextHops[nh.index].mac = {{0}}; // just initialize
+		//newTable->nextHops[nh.index].mac = {{0}}; // just initialize
+		for(int i=0; i<6; i++){
+			newTable->nextHops[nh.index].mac[i] = 0;
+		}
 		if(mapping.count(nh.nh_ip)){
 			newTable->nextHops[nh.index].mac = mapping[nh.nh_ip].mac;
 		}
@@ -74,20 +54,23 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 	for(int i=0; i<6; i++){
 		ether_hdr->d_mac[i] = 0xff;
 	}
+	ether_hdr->ethertype = htons(0x0806);
 
 	arp_hdr->hw_type = htons(0x0001);
 	arp_hdr->proto_type = htons(0x0800);
 	arp_hdr->hw_len = 6;
 	arp_hdr->proto_len = 4;
-	arp_hdr->op = arp::OP_REQUEST;
+	arp_hdr->op = htons(arp::OP_REQUEST);
 
 	arp_hdr->s_hw_addr = iface_ptr->mac;
 	if(iface_ptr->IPs.empty()){
 		fatal("Cannot send ARP request without an IP address on interface");
 	}
-	arp_hdr->s_proto_addr = iface_ptr->IPs.front();
-	arp_hdr->t_hw_addr = {{0}};
-	arp_hdr->t_proto_addr = htonl(ip);
+	arp_hdr->s_proto_addr = htonl(iface_ptr->IPs.front());
+	for(int i=0; i<6; i++){
+		arp_hdr->t_hw_addr[i] = 0;
+	}
+	arp_hdr->t_proto_addr = ip;
 
 	frame.len = sizeof(ether) + sizeof(arp);
 }
@@ -121,17 +104,6 @@ void ARPTable::handleReply(frame& frame){
 	nextHop.netmapInterface = frame.iface & frame::IFACE_ID;
 
 	auto next_hop_addresses = routingTable->getNextHopMapping();
-#if 0
-	auto it = find(next_hop_addresses->begin(), next_hop_addresses->end(), ip);
-	if(it == next_hop_addresses->end()){
-		// This is a next hop inside the routing table
-		mapping.insert({ip, nextHop});
-		currentTable->nextHops[distance(next_hop_addresses->begin(), it)] = nextHop;
-	} else {
-		// This is a directly connected node
-		directlyConnected.insert({ip, nextHop});
-	}
-#endif
 
 	// Check if this is a registered next hop
 	for(auto& nh : *next_hop_addresses){

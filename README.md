@@ -48,6 +48,7 @@ In order to compile Ariadne, some dependencies need to be installed:
 
 During the course of the development Clang is used as the main compiler.
 As long as you stick to "Release" builds GCC >= 4.9 should work without any problem.
+GCC 4.8.5 is known to NOT work in "Release" build because of a bug in the multithreading implementation.
 If you are having any problem with either Clang or GCC please open an issue.
 Normally such things are easily fixed, since this projects sticks to C++11 without any extension.
 

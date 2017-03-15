@@ -1,4 +1,5 @@
 #include "manager.hpp"
+#include <string.h>
 
 using namespace std;
 using namespace moodycamel;
@@ -95,6 +96,7 @@ void Manager::initNetmap(){
 
 		iface_ptr->netmapIndex = iface_num++;
 	}
+
 	logInfo("Manager::initNetmap Interface preparations finished.\n");
 
 	for(unsigned int i=0; i<numWorkers; i++){
@@ -205,8 +207,9 @@ void Manager::process(){
 					arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
 					missingMACs[ip] = mr;
 				} else {
-					duration<double> diff = it->second.time - steady_clock::now();
-					if(diff.count() < 0.5){
+					//duration<double> diff = it->second.time - steady_clock::now();
+					//if(diff.count() < 0.5){
+					if(false){
 						// Give it a bit more time and just discard the frame
 						frame.iface |= frame::IFACE_DISCARD;
 						logDebug("Manager::process no new ARP request");
@@ -231,23 +234,34 @@ void Manager::process(){
 			netmap_ring* ring = netmapTxRings[iface][ringid];
 			uint32_t slotIdx = ring->head;
 
-			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
-					+ ", slotIdx: " + int2str(slotIdx)
-					+ ", buf_idx: " + int2str((int) NETMAP_BUF_IDX(ring, frame.buf_ptr))
-					+ ", length: " + int2str(frame.len)
-					+ ", buf_ptr: 0x" + int2strHex((uint64_t) frame.buf_ptr));
+			// Make sure frame has at least minimum size
+			if(frame.len < 60){
+				frame.len = 60;
+			}
 
-			logDebug("Manager::process Hexdump of frame:");
-#if DEBUG
-			neolib::hex_dump(frame.buf_ptr, frame.len, cerr);
-#endif
-
+#if 1
 			freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
 			ring->slot[slotIdx].flags = NS_BUF_CHANGED;
+#else
+			memcpy(NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx),
+				frame.buf_ptr, frame.len);
+			freeBufs.push_back(NETMAP_BUF_IDX(ring, frame.buf_ptr));
+#endif
 			ring->slot[slotIdx].len = frame.len;
 			ring->head = nm_ring_next(ring, ring->head);
 			ring->cur = ring->head;
+
+			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
+					+ ", slotIdx: " + int2str(slotIdx)
+					+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
+					+ ", length: " + int2str(ring->slot[slotIdx].len));
+
+			logDebug("Manager::process Hexdump of frame:");
+#if DEBUG
+			neolib::hex_dump(NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx),
+				ring->slot[slotIdx].len , cerr);
+#endif
 
 		}
 	}
