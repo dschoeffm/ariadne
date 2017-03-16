@@ -244,9 +244,9 @@ void Manager::process(){
 					arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
 					missingMACs[ip] = mr;
 				} else {
-					//duration<double> diff = it->second.time - steady_clock::now();
-					//if(diff.count() < 0.5){
-					if(false){
+					duration<double> diff = it->second.time - steady_clock::now();
+					if(diff.count() < 0.5){
+					//if(false){
 						// Give it a bit more time and just discard the frame
 						frame.iface |= frame::IFACE_DISCARD;
 #ifdef DEBUG
