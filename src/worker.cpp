@@ -11,7 +11,9 @@ static bool IPv4HdrVerification(ipv4* ipv4_hdr, uint16_t f_len){
 
 	// Step 2
 	if(IPv4HdrChecksum(ipv4_hdr) != ipv4_hdr->checksum){
+#ifdef DEBUG
 		logDebug("IPv4 verification failed");
+#endif
 		return false;
 	}
 
@@ -55,7 +57,9 @@ void Worker::process(){
 		statsNumFrames += numFrames;
 
 		for(size_t i=0; i<numFrames; i++){
+#ifdef DEBUG
 			logDebug("Worker::process Processing packet now\n");
+#endif
 
 			statsNumBytes += f[i].len;
 
@@ -77,12 +81,16 @@ void Worker::process(){
 
 			if(ether_hdr->ethertype == htons(0x0800)){
 				if(!IPv4HdrVerification(ipv4_hdr, f[i].len)){
+#ifdef DEBUG
 					logDebug("Worker::process Discarding frame - Header verification failed");
+#endif
 					f[i].iface = frame::IFACE_DISCARD;
 				} else {
 					// Check if the packet is targeted at the router
 					if(count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(), ipv4_hdr->d_ip)){
+#ifdef DEBUG
 						logDebug("Worker::process Frame is destined at the host");
+#endif
 						f[i].iface |= frame::IFACE_HOST;
 						continue;
 					}
@@ -93,13 +101,16 @@ void Worker::process(){
 
 					// Route the packet
 					nh_index index = cur_lpm->route(ntohl(ipv4_hdr->d_ip));
+#ifdef DEBUG
 					logDebug("Worker::process nh_index: " + int2strHex(index));
-
+#endif
 					// Check if the index is invalid
 					if(index == RoutingTable::route::NH_INVALID){
 						fatal("Worker::process next hop is invalid");
 					} else {
+#ifdef DEBUG
 						logDebug("Worker::process frame will use next hop " + int2strHex(index));
+#endif
 					}
 
 					// Look up the next hop
@@ -120,9 +131,11 @@ void Worker::process(){
 					// Is the next hop valid?
 					if(!nh){
 						// Let the manager handle this
+#ifdef DEBUG
 						logDebug("Worker::process There is no MAC for this IP ("
 								+ ip_to_str(htonl(ipv4_hdr->d_ip)) + ")");
 						logDebug("Worker::process Interface for ARP: " + int2str(nh.netmapInterface));
+#endif
 						if(nh.netmapInterface == uint16_t_max){
 							abort();
 						}
@@ -130,7 +143,9 @@ void Worker::process(){
 						f[i].iface |= frame::IFACE_NOMAC;
 					} else {
 						// Set MAC addresses
+#ifdef DEBUG
 						logDebug("Worker::process There is nothing special about this frame");
+#endif
 						ether_hdr->d_mac = nh.mac;
 						ether_hdr->s_mac = iface_ptr->mac;
 						f[i].iface = nh.netmapInterface;
@@ -138,15 +153,19 @@ void Worker::process(){
 					egressQ->try_enqueue(f[i]);
 				}
 			} else if(ether_hdr->ethertype == htons(0x0806)){
+#ifdef DEBUG
 				logDebug("Worker::process This frame contains some kind of ARP payload");
+#endif
 				f[i].iface |= frame::IFACE_ARP;
 				egressQ->try_enqueue(f[i]);
 			} else {
 				// This router currently doesn't support L3 Protocol $foo
+#ifdef DEBUG
 				std::stringstream stream;
 				stream << std::hex << htons(ether_hdr->ethertype);
 				logDebug("Worker::process L3 protocol is currently not supported, given: "
 						+ stream.str());
+#endif
 				f[i].iface = frame::IFACE_DISCARD;
 				egressQ->try_enqueue(f[i]);
 			}

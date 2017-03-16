@@ -6,7 +6,9 @@ using namespace headers;
 constexpr array<uint8_t, 6> ARPTable::nextHop::invalidMac;
 
 void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
+#ifdef DEBUG
 	logDebug("ARPTable::createCurrentTable constructing tables for mapping");
+#endif
 	this->routingTable = routingTable;
 
 	// create a new table;
@@ -16,7 +18,9 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 	newTable->nextHops.resize(next_hop_addresses->size());
 	for(auto nh : *next_hop_addresses){
 		if(nh.interface->netmapIndex == uint16_t_max){
+#ifdef DEBUG
 			logDebug("invalid nh interface");
+#endif
 			abort();
 		}
 		newTable->nextHops[nh.index].netmapInterface = nh.interface->netmapIndex;
@@ -33,7 +37,9 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 };
 
 void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
+#ifdef DEBUG
 	logDebug("ARPTable::prepareRequest Preparing ARP request now");
+#endif
 
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
@@ -76,7 +82,9 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 }
 
 void ARPTable::handleReply(frame& frame){
+#ifdef DEBUG
 	logDebug("ARPTable::handleReply Looking at ARP reply now");
+#endif
 
 	// ARP is stateless -> doesn't mapper if we actually sent a request
 	uint32_t ip;
@@ -120,7 +128,9 @@ void ARPTable::handleReply(frame& frame){
 }
 
 void ARPTable::handleRequest(frame& frame){
+#ifdef DEBUG
 	logDebug("ARPTable::handleRequest looking at request now");
+#endif
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
 
@@ -149,8 +159,10 @@ void ARPTable::handleRequest(frame& frame){
 	// Check if we are asked
 	if(!count(iface_ptr->IPs.begin(), iface_ptr->IPs.end(),
 			ntohl(arp_hdr->t_proto_addr))){
+#ifdef DEBUG
 		logDebug("Got ARP request for some other node (IP: "
 				 + ip_to_str(ntohl(arp_hdr->t_proto_addr)) + "), discarding");
+#endif
 		frame.iface = frame::IFACE_DISCARD;
 		return;
 	}

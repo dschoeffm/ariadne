@@ -94,12 +94,15 @@ void RoutingTable::buildNextHopList(){
 #endif
 
 void RoutingTable::buildNextHopList(){
+#ifdef DEBUG
 	logDebug("RoutingTable::buildNextHopList() create the next hop indices now");
+#endif
 	nh_index next_index = 0;
 
 	for(auto &a : *entries){
 		for(auto &r : a){
 
+#ifdef DEBUG
 			stringstream sstream;
 			sstream << endl << "Route information: ";
 			sstream << ip_to_str(r.base) << "/" << r.prefix_length;
@@ -107,9 +110,12 @@ void RoutingTable::buildNextHopList(){
 			sstream << " iface " << r.interface;
 			//sstream << " nh_index " << r.index;
 			logDebug(sstream.str());
+#endif
 
 			if(r.next_hop == 0){
+#ifdef DEBUG
 				logDebug("Route is directly connected");
+#endif
 				r.index = route::NH_DIRECTLY_CONNECTED;
 				r.index |= (~0xffff8000) & r.interface->netmapIndex;
 				continue;
@@ -119,7 +125,9 @@ void RoutingTable::buildNextHopList(){
 			// Check if this next hop already has an index
 			for(nh_abstract nh : *nextHopMapping){
 				if(nh.nh_ip == r.next_hop){
+#ifdef DEBUG
 					logDebug("Next hop is found and will be used");
+#endif
 					finished = true;
 					r.index = nh.index;
 					assert(r.index != route::NH_INVALID);
@@ -131,7 +139,9 @@ void RoutingTable::buildNextHopList(){
 			}
 
 			// In case we continue here, we need to insert a new nh
+#ifdef DEBUG
 			logDebug("Next hop is not yet found - a new one will be inserted");
+#endif
 			nh_abstract nh;
 			nh.nh_ip = r.next_hop;
 			nh.index = next_index++;
@@ -139,9 +149,11 @@ void RoutingTable::buildNextHopList(){
 			r.index = nh.index;
 			assert(r.index != route::NH_INVALID);
 			nextHopMapping->push_back(nh);
+#ifdef DEBUG
 			stringstream sstream1;
 			sstream1 << "The new next hop has the index " << r.index;
 			logDebug(sstream1.str());
+#endif
 		}
 	}
 

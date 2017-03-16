@@ -80,7 +80,9 @@ void Manager::initNetmap(){
 				bufIdx = * reinterpret_cast<uint32_t*>(NETMAP_BUF(netmapTxRings[0][0], bufIdx))){
 			freeBufs.push_back(bufIdx);
 		}
+#ifdef DEBUG
 		logDebug("Having " + int2str(freeBufs.size()) + " free buffers at the moment");
+#endif
 
 		shared_ptr<Interface> iface_ptr;
 		for(auto i : interfaces){
@@ -173,24 +175,29 @@ void Manager::process(){
 					f[i].iface = iface;
 					f[i].vlan = 0;
 
+#ifdef DEBUG
 					logDebug("Manager::process received frame from iface: " + int2str(f[i].iface)
 							+ ", length: " + int2str(f[i].len)
 							+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
 							+ ", buf_ptr: 0x" + int2strHex((uint64_t) f[i].buf_ptr));
+#endif
 
 					ring->slot[slotIdx].buf_idx = freeBufs.back();
 					ring->slot[slotIdx].flags = NS_BUF_CHANGED;
 					freeBufs.pop_back();
+#ifdef DEBUG
 					logDebug("Manager::process replacement rx buf_idx: "
 							+ int2str(ring->slot[slotIdx].buf_idx));
-
+#endif
 					slotIdx = nm_ring_next(ring, slotIdx);
 					ring->head = slotIdx;
 					ring->cur = slotIdx;
 				}
 
 				inRings[worker]->try_enqueue_bulk(f, numFrames);
+#ifdef DEBUG
 				logDebug("Manager::process enqueue new frames");
+#endif
 			}
 		}
 		// TODO host ring
@@ -203,24 +210,32 @@ void Manager::process(){
 			// Check for discard/host/arp flag
 			unsigned int ringid;
 			if(frame.iface & frame::IFACE_HOST){
+#ifdef DEBUG
 				logDebug("Manager::process Forwarding frame to kernel");
+#endif
 				ringid = numWorkers;
 			} else if(frame.iface & frame::IFACE_ARP){
+#ifdef DEBUG
 				logDebug("Manager::process handling ARP frame");
+#endif
 				ringid = worker;
 				arpTable.handleFrame(frame);
 			} else if(frame.iface & frame::IFACE_NOMAC){
+#ifdef DEBUG
 				logDebug("Manager::process no MAC for target");
+#endif
 				ringid = worker;
 				ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(frame.buf_ptr + sizeof(ether));
 				uint32_t ip = ipv4_hdr->d_ip;
 				auto it = missingMACs.find(ip);
 				if(it == missingMACs.end()){
+#ifdef DEBUG
 					stringstream sstream;
 					sstream << "Manager::process no ARP request sent yet,";
 					sstream << " sending now via interface ";
 					sstream << (frame.iface & frame::IFACE_ID);
 					logDebug(sstream.str());
+#endif
 					macRequest mr;
 					mr.ip = ip;
 					mr.iface = frame.iface & frame::IFACE_ID;
@@ -233,11 +248,15 @@ void Manager::process(){
 					if(false){
 						// Give it a bit more time and just discard the frame
 						frame.iface |= frame::IFACE_DISCARD;
+#ifdef DEBUG
 						logDebug("Manager::process no new ARP request");
+#endif
 					} else {
 						// Send out a new ARP Request
 						arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
+#ifdef DEBUG
 						logDebug("Manager::process prepare new ARP request");
+#endif
 					}
 				}
 			} else {
@@ -246,7 +265,9 @@ void Manager::process(){
 
 			if(frame.iface & frame::IFACE_DISCARD){
 				// Just reclaim buffer
+#ifdef DEBUG
 				logDebug("Manager::process discarding frame");
+#endif
 				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
 				continue;
 			}
@@ -270,14 +291,14 @@ void Manager::process(){
 			} else {
 				freeBufs.push_back(NETMAP_BUF_IDX(ring, frame.buf_ptr));
 			}
-
+#ifdef DEBUG
 			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
 					+ ", slotIdx: " + int2str(slotIdx)
 					+ ", buf_idx: " + int2str(ring->slot[slotIdx].buf_idx)
 					+ ", length: " + int2str(ring->slot[slotIdx].len));
 
 			logDebug("Manager::process Hexdump of frame:");
-#if DEBUG
+
 			neolib::hex_dump(NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx),
 				ring->slot[slotIdx].len , cerr);
 #endif
@@ -287,7 +308,9 @@ void Manager::process(){
 }
 
 void Manager::printInterfaces(){
+#ifdef DEBUG
 	for(auto i : interfaces){
 		logDebug(i->toString());
 	}
+#endif
 };
