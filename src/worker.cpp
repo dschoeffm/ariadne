@@ -152,7 +152,11 @@ void Worker::process(){
 void Worker::printAndClearStats(){
 	stringstream sstream;
 	sstream << "Worker " << workerId << ": ";
-	sstream << "Avg. batch size: " << statsNumFrames / statsNumBatches << " ";
+	if((statsNumFrames > 0) && (statsNumBatches > 0)){
+		sstream << "Avg. batch size: " << statsNumFrames / statsNumBatches << " ";
+	} else {
+		sstream << "Avg. batch size: - ";
+	}
 	sstream << "#Frames: " << statsNumFrames << " ";
 	sstream << "#Batches: " << statsNumBatches << " ";
 	sstream << "#Bytes: " << statsNumBytes << endl;
