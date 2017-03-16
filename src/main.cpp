@@ -29,7 +29,7 @@ struct GlobalConfig;
 void print_usage(string name) {
 	logInfo("Usage: " + name + " <options> <list-of-interfaces>");
 	logInfo("options:");
-	logInfo("\t-w <x>\t\tUse x worker threads (default: 1)");
+	logInfo("\t-t <x>\t\tUse x worker threads (default: 1)");
 };
 
 int parseOptions(int argc, char** argv){
@@ -39,9 +39,12 @@ int parseOptions(int argc, char** argv){
 		if(strcmp(argv[pos], "-t") == 0){
 			GlobalConfig.numWorkers = atoi(argv[pos+1]);
 			pos += 2;
+		} else if((strcmp(argv[pos], "-h") == 0) || strcmp(argv[pos], "--help")){
+			print_usage(argv[0]);
+			exit(0);
 		} else {
 			logInfo("Unknown Option");
-			abort();
+			exit(1);
 		}
 	}
 
