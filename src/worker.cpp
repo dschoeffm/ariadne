@@ -51,8 +51,13 @@ void Worker::process(){
 			return;
 		}
 
+		statsNumBatches++;
+		statsNumFrames += numFrames;
+
 		for(size_t i=0; i<numFrames; i++){
 			logDebug("Worker::process Processing packet now\n");
+
+			statsNumBytes += f[i].len;
 
 			// Cast all the things
 			ether* ether_hdr = reinterpret_cast<ether*>(f[i].buf_ptr);
