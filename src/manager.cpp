@@ -156,6 +156,9 @@ void Manager::process(){
 			while(nm_ring_space(ring)){
 				uint32_t numFrames = nm_ring_space(ring);
 				numFrames = min(numFrames, (uint32_t) freeBufs.size());
+				if(numFrames == 0){
+					break;
+				}
 #define MANAGER_BULK_SIZE 64
 				if(numFrames > MANAGER_BULK_SIZE){
 					numFrames = MANAGER_BULK_SIZE;
@@ -257,18 +260,16 @@ void Manager::process(){
 				frame.len = 60;
 			}
 
-#if 1
-			freeBufs.push_back(ring->slot[slotIdx].buf_idx);
-			ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
-			ring->slot[slotIdx].flags = NS_BUF_CHANGED;
-#else
-			memcpy(NETMAP_BUF(ring, ring->slot[slotIdx].buf_idx),
-				frame.buf_ptr, frame.len);
-			freeBufs.push_back(NETMAP_BUF_IDX(ring, frame.buf_ptr));
-#endif
-			ring->slot[slotIdx].len = frame.len;
-			ring->head = nm_ring_next(ring, ring->head);
-			ring->cur = ring->head;
+			if(nm_ring_space(ring)){
+				freeBufs.push_back(ring->slot[slotIdx].buf_idx);
+				ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
+				ring->slot[slotIdx].flags = NS_BUF_CHANGED;
+				ring->slot[slotIdx].len = frame.len;
+				ring->head = nm_ring_next(ring, ring->head);
+				ring->cur = ring->head;
+			} else {
+				freeBufs.push_back(NETMAP_BUF_IDX(ring, frame.buf_ptr));
+			}
 
 			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
 					+ ", slotIdx: " + int2str(slotIdx)
