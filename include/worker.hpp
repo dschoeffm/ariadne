@@ -69,8 +69,8 @@ private:
 		enum_state state_ = state.load();
 		while(state_ == RUN){
 			process();
-			cur_lpm = new_lpm;
-			cur_arp_table = new_arp_table;
+			//cur_lpm = new_lpm;
+			//cur_arp_table = new_arp_table;
 			state_ = state.load();
 		}
 		logInfo("Worker is exiting");

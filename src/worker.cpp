@@ -44,7 +44,6 @@ void Worker::process(){
 	// TODO
 	// ICMP STUFF
 
-#define WORKER_BULK_SIZE 64
 	frame f[WORKER_BULK_SIZE];
 
 	while(1){

@@ -7,6 +7,9 @@
 // Which LPM implmentation to use
 using LPM=BasicTrie;
 
+#define MANAGER_BULK_SIZE 512
+#define WORKER_BULK_SIZE 512
+
 // Fixed ring size
 constexpr auto RING_SIZE = 1024;
 

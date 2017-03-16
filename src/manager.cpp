@@ -15,6 +15,8 @@ void Manager::initNetmap(){
 	routingTable = make_shared<LinuxTable>(this->interfaces);
 	//routingTable->print_table();
 
+	memset(&nmreq_root, 0, sizeof(struct nmreq));
+
 	nmreq_root.nr_version = NETMAP_API;
 	nmreq_root.nr_tx_slots = 2048;
 	nmreq_root.nr_rx_slots = 2048;
@@ -161,7 +163,6 @@ void Manager::process(){
 				if(numFrames == 0){
 					break;
 				}
-#define MANAGER_BULK_SIZE 64
 				if(numFrames > MANAGER_BULK_SIZE){
 					numFrames = MANAGER_BULK_SIZE;
 				}
