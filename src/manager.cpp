@@ -126,10 +126,12 @@ void Manager::startWorkerThreads(){
 
 void Manager::startStatsThread(){
 	auto statsFun = [&](vector<Worker*> workers){
-		for(auto w : workers){
-			w->printAndClearStats();
+		while(1){
+			for(auto w : workers){
+				w->printAndClearStats();
+			}
+			this_thread::sleep_for(chrono::milliseconds(1000));
 		}
-		this_thread::sleep_for(chrono::milliseconds(1000));
 	};
 	statsThread = new thread(statsFun, workers);
 };
