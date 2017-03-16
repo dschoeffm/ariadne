@@ -20,11 +20,32 @@
 #include "basicTrie.hpp"
 #include "pcTrie.hpp"
 #include "manager.hpp"
+#include "config.hpp"
 
 using namespace std;
 
+struct GlobalConfig;
+
 void print_usage(string name) {
-	logInfo("Usage: " + name + " <list-of-interfaces>");
+	logInfo("Usage: " + name + " <options> <list-of-interfaces>");
+	logInfo("options:");
+	logInfo("\t-w <x>\t\tUse x worker threads (default: 1)");
+};
+
+int parseOptions(int argc, char** argv){
+	int pos = 1;
+
+	while((argv[pos][0] == '-') && (pos < argc)){
+		if(strcmp(argv[pos], "-t") == 0){
+			GlobalConfig.numWorkers = atoi(argv[pos+1]);
+			pos += 2;
+		} else {
+			logInfo("Unknown Option");
+			abort();
+		}
+	}
+
+	return pos;
 };
 
 int main(int argc, char** argv){
@@ -33,8 +54,10 @@ int main(int argc, char** argv){
 		return 0;
 	}
 
+	int intStart = parseOptions(argc, argv);
+
 	vector<string> interfaces;
-	for(int i=1; i<argc; i++){
+	for(int i=intStart; i<argc; i++){
 		interfaces.push_back(argv[i]);
 	}
 

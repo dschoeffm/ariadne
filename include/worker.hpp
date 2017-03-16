@@ -52,6 +52,14 @@ private:
 	enum enum_state {RUN, STOP};
 	std::atomic<enum_state> state;
 
+	// ID of this worker
+	unsigned int workerId;
+
+	// Stats
+	unsigned int statsNumBatches = 0;
+	unsigned int statsNumFrames = 0;
+	unsigned int statsNumBytes = 0;
+
 	// Big stuff happens here
 	void process();
 
@@ -83,12 +91,12 @@ public:
 		std::shared_ptr<ARPTable::table> cur_arp_table,
 		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> ingressQ,
 		std::shared_ptr<moodycamel::ConcurrentQueue<frame>> egressQ,
-		std::vector<std::shared_ptr<Interface>> interfaces)
+		std::vector<std::shared_ptr<Interface>> interfaces,
+		unsigned int workerId)
 		: cur_lpm(cur_lpm), cur_arp_table(cur_arp_table),
 		new_lpm(cur_lpm), new_arp_table(cur_arp_table),
 	   	ingressQ(ingressQ), egressQ(egressQ), interfaces(interfaces),
-		thread(&Worker::run, this),
-		state(RUN) {};
+		thread(&Worker::run, this), state(RUN), workerId(workerId){};
 
 	/*! Update Worker.
 	 * This function updates the worker thread with new information
@@ -108,6 +116,8 @@ public:
 		state.store(STOP);
 		thread.join();
 	}
+
+	void printAndClearStats();
 };
 
 #endif /* WORKER_HPP */

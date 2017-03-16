@@ -120,8 +120,18 @@ void Manager::startWorkerThreads(){
 	arpTable.createCurrentTable(routingTable);
 	for(unsigned i=0; i<numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
-			inRings[i], outRings[i], interfaces));
+			inRings[i], outRings[i], interfaces, i));
 	}
+};
+
+void Manager::startStatsThread(){
+	auto statsFun = [&](vector<Worker*> workers){
+		for(auto w : workers){
+			w->printAndClearStats();
+		}
+		this_thread::sleep_for(chrono::milliseconds(1000));
+	};
+	statsThread = new thread(statsFun, workers);
 };
 
 void Manager::process(){

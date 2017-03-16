@@ -85,13 +85,16 @@ private:
 
 	void initNetmap();
 	void startWorkerThreads();
+	void startStatsThread();
+	std::thread* statsThread;
 
 public:
 	/*! Initialize new Manager.
 	 * Nothing big really
 	 */
 	Manager(std::vector<std::string> interfacesToUse) :
-		numWorkers(std::thread::hardware_concurrency()-1),
+		//numWorkers(std::thread::hardware_concurrency()-1),
+		numWorkers(GlobalConfig.numWorkers),
 		interfacesToUse(interfacesToUse), interfaces(fillNetLink()),
 		arpTable(interfaces) {};
 
@@ -108,6 +111,7 @@ public:
 		startWorkerThreads();
 		state.store(RUN);
 		printInterfaces();
+		startStatsThread();
 		while(state.load() == RUN){
 			process();
 		}

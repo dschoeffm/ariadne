@@ -148,3 +148,18 @@ void Worker::process(){
 		}
 	}
 };
+
+void Worker::printAndClearStats(){
+	stringstream sstream;
+	sstream << "Worker " << workerId << ": ";
+	sstream << "Avg. batch size: " << statsNumFrames / statsNumBatches << " ";
+	sstream << "#Frames: " << statsNumFrames << " ";
+	sstream << "#Batches: " << statsNumBatches << " ";
+	sstream << "#Bytes: " << statsNumBytes << endl;
+
+	statsNumFrames = 0;
+	statsNumBatches = 0;
+	statsNumBytes = 0;
+
+	logInfo(sstream.str());
+};

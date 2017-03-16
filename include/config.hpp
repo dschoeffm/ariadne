@@ -16,4 +16,8 @@ constexpr auto ARP_WAIT_MILLIS = 1000;
 // Maximum backlog in a worker
 constexpr auto WORKER_MAX_BACKLOG = 256;
 
+static struct GlobalConfig_t {
+	unsigned int numWorkers = 1;
+} GlobalConfig; // defined in main.cpp
+
 #endif /* CONFIG_HPP */
