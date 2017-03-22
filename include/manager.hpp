@@ -71,6 +71,10 @@ private:
 	enum enum_state {RUN, STOP};
 	std::atomic<enum_state> state;
 
+	unsigned int statsNumRecv = 0;
+	unsigned int statsNumDropped = 0;
+	unsigned int statsNumTransmitted = 0;
+
 	struct macRequest {
 		uint32_t ip;
 		uint16_t iface;

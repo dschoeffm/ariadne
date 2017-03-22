@@ -131,9 +131,24 @@ void Manager::startWorkerThreads(){
 void Manager::startStatsThread(){
 	auto statsFun = [&](vector<Worker*> workers){
 		while(1){
+			// Print workers
 			for(auto w : workers){
 				w->printAndClearStats();
 			}
+
+			// Print manager
+			stringstream sstream;
+			sstream << "Manager: ";
+			sstream << "#Recv: " << statsNumRecv << ", ";
+			sstream << "#Dropped: " << statsNumDropped << ", ";
+			sstream << "#Transmitted: " << statsNumTransmitted;
+
+			statsNumRecv = 0;
+			statsNumDropped = 0;
+			statsNumTransmitted = 0;
+
+			logInfo(sstream.str());
+
 			this_thread::sleep_for(chrono::milliseconds(1000));
 		}
 	};
@@ -168,6 +183,7 @@ void Manager::process(){
 				}
 				uint32_t slotIdx = ring->head;
 				frame f[MANAGER_BULK_SIZE];
+				statsNumRecv += numFrames;
 				for(uint32_t i=0; i<numFrames; i++){
 
 					f[i].buf_ptr = reinterpret_cast<uint8_t*>(
@@ -269,6 +285,7 @@ void Manager::process(){
 #ifdef DEBUG
 				logDebug("Manager::process discarding frame");
 #endif
+				statsNumDropped++;
 				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
 				continue;
 			}
@@ -289,8 +306,10 @@ void Manager::process(){
 				ring->slot[slotIdx].len = frame.len;
 				ring->head = nm_ring_next(ring, ring->head);
 				ring->cur = ring->head;
+				statsNumTransmitted++;
 			} else {
 				freeBufs.push_back(NETMAP_BUF_IDX(ring, frame.buf_ptr));
+				statsNumDropped++;
 			}
 #ifdef DEBUG
 			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
