@@ -73,6 +73,8 @@ private:
 
 	unsigned int statsNumRecv = 0;
 	unsigned int statsNumDropped = 0;
+	unsigned int statsNumDroppedRingSpace = 0;
+	unsigned int statsNumDroppedNoMac = 0;
 	unsigned int statsNumTransmitted = 0;
 
 	struct macRequest {

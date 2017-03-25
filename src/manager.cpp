@@ -124,7 +124,7 @@ void Manager::startWorkerThreads(){
 	arpTable.createCurrentTable(routingTable);
 	for(unsigned i=0; i<numWorkers; i++){
 		workers.push_back(new Worker(curLPM, arpTable.getCurrentTable(),
-			inRings[i], outRings[i], interfaces, i));
+			inRings[0], outRings[0], interfaces, i));
 	}
 };
 
@@ -141,10 +141,14 @@ void Manager::startStatsThread(){
 			sstream << "Manager: ";
 			sstream << "#Recv: " << statsNumRecv << ", ";
 			sstream << "#Dropped: " << statsNumDropped << ", ";
-			sstream << "#Transmitted: " << statsNumTransmitted;
+			sstream << "#DroppedRingSpace: " << statsNumDroppedRingSpace << ", ";
+			sstream << "#DroppedNoMac: " << statsNumDroppedNoMac << ", ";
+			sstream << "#Transmitted: " << statsNumTransmitted << endl;
 
 			statsNumRecv = 0;
 			statsNumDropped = 0;
+			statsNumDroppedRingSpace = 0;
+			statsNumDroppedNoMac = 0;
 			statsNumTransmitted = 0;
 
 			logInfo(sstream.str());
@@ -211,7 +215,7 @@ void Manager::process(){
 					ring->cur = slotIdx;
 				}
 
-				inRings[worker]->try_enqueue_bulk(f, numFrames);
+				inRings[0]->try_enqueue_bulk(f, numFrames);
 #ifdef DEBUG
 				logDebug("Manager::process enqueue new frames");
 #endif
@@ -221,11 +225,12 @@ void Manager::process(){
 	}
 
 	// Run over all frames processed by the workers and enqueue to netmap
-	for(unsigned int worker=0; worker < numWorkers; worker++){
+	//for(unsigned int worker=0; worker < numWorkers; worker++){
 		frame frame;
-		while(outRings[worker]->try_dequeue(frame)){
+		unsigned int ringid = 0;
+		while(outRings[0]->try_dequeue(frame)){
 			// Check for discard/host/arp flag
-			unsigned int ringid;
+			//unsigned int ringid;
 			if(frame.iface & frame::IFACE_HOST){
 #ifdef DEBUG
 				logDebug("Manager::process Forwarding frame to kernel");
@@ -235,13 +240,13 @@ void Manager::process(){
 #ifdef DEBUG
 				logDebug("Manager::process handling ARP frame");
 #endif
-				ringid = worker;
+				//ringid = worker;
 				arpTable.handleFrame(frame);
 			} else if(frame.iface & frame::IFACE_NOMAC){
 #ifdef DEBUG
 				logDebug("Manager::process no MAC for target");
 #endif
-				ringid = worker;
+				//ringid = worker;
 				ipv4* ipv4_hdr = reinterpret_cast<ipv4*>(frame.buf_ptr + sizeof(ether));
 				uint32_t ip = ipv4_hdr->d_ip;
 				auto it = missingMACs.find(ip);
@@ -255,30 +260,38 @@ void Manager::process(){
 #endif
 					macRequest mr;
 					mr.ip = ip;
-					mr.iface = frame.iface & frame::IFACE_ID;
+					frame.iface &= frame::IFACE_ID;
+					mr.iface = frame.iface;
 					mr.time = steady_clock::now();
-					arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
+					arpTable.prepareRequest(ip, frame.iface, frame);
 					missingMACs[ip] = mr;
+					logInfo("Manager::process prepare new ARP request (first time)");
 				} else {
-					duration<double> diff = it->second.time - steady_clock::now();
+					duration<double> diff = steady_clock::now() - it->second.time;
 					if(diff.count() < 0.5){
 					//if(false){
 						// Give it a bit more time and just discard the frame
 						frame.iface |= frame::IFACE_DISCARD;
+						statsNumDroppedNoMac++;
 #ifdef DEBUG
 						logDebug("Manager::process no new ARP request");
 #endif
 					} else {
 						// Send out a new ARP Request
 						arpTable.prepareRequest(ip, frame.iface & frame::IFACE_ID, frame);
-#ifdef DEBUG
-						logDebug("Manager::process prepare new ARP request");
-#endif
+						it->second.time = steady_clock::now();
+//#ifdef DEBUG
+						logInfo("Manager::process prepare new ARP request (repeated)");
+//#endif
 					}
 				}
-			} else {
-				ringid = worker;
-			}
+			} /* else {
+				//ringid = worker;
+				ringid++;
+				if(ringid == numWorkers){
+					ringid = 0;
+				}
+			} */
 
 			if(frame.iface & frame::IFACE_DISCARD){
 				// Just reclaim buffer
@@ -288,6 +301,11 @@ void Manager::process(){
 				statsNumDropped++;
 				freeBufs.push_back(NETMAP_BUF_IDX(netmapTxRings[0][0], frame.buf_ptr));
 				continue;
+			}
+
+			ringid++;
+			if(ringid == numWorkers){
+				ringid = 0;
 			}
 
 			uint16_t iface = frame.iface & frame::IFACE_ID;
@@ -303,13 +321,16 @@ void Manager::process(){
 				freeBufs.push_back(ring->slot[slotIdx].buf_idx);
 				ring->slot[slotIdx].buf_idx = NETMAP_BUF_IDX(ring, frame.buf_ptr);
 				ring->slot[slotIdx].flags = NS_BUF_CHANGED;
+				//if(slotIdx % 512 == 0){
+				//	ring->slot[slotIdx].flags |= NS_REPORT;
+				//}
 				ring->slot[slotIdx].len = frame.len;
 				ring->head = nm_ring_next(ring, ring->head);
 				ring->cur = ring->head;
 				statsNumTransmitted++;
 			} else {
 				freeBufs.push_back(NETMAP_BUF_IDX(ring, frame.buf_ptr));
-				statsNumDropped++;
+				statsNumDroppedRingSpace++;
 			}
 #ifdef DEBUG
 			logDebug("Manager::process sending frame to netmap,\n    iface: " + int2str(iface)
@@ -324,7 +345,7 @@ void Manager::process(){
 #endif
 
 		}
-	}
+	//}
 }
 
 void Manager::printInterfaces(){

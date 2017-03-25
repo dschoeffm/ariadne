@@ -37,9 +37,9 @@ void ARPTable::createCurrentTable(std::shared_ptr<RoutingTable> routingTable){
 };
 
 void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
-#ifdef DEBUG
-	logDebug("ARPTable::prepareRequest Preparing ARP request now");
-#endif
+//#ifdef DEBUG
+	logInfo("ARPTable::prepareRequest Preparing ARP request now, IP: " + ip_to_str(ntohl(ip)));
+//#endif
 
 	ether* ether_hdr = reinterpret_cast<ether*>(frame.buf_ptr);
 	arp* arp_hdr = reinterpret_cast<arp*>(frame.buf_ptr + sizeof(ether));
@@ -82,9 +82,9 @@ void ARPTable::prepareRequest(uint32_t ip, uint16_t iface, frame& frame){
 }
 
 void ARPTable::handleReply(frame& frame){
-#ifdef DEBUG
-	logDebug("ARPTable::handleReply Looking at ARP reply now");
-#endif
+//#ifdef DEBUG
+	logInfo("ARPTable::handleReply Looking at ARP reply now");
+//#endif
 
 	// ARP is stateless -> doesn't mapper if we actually sent a request
 	uint32_t ip;
@@ -166,6 +166,31 @@ void ARPTable::handleRequest(frame& frame){
 		frame.iface = frame::IFACE_DISCARD;
 		return;
 	}
+
+	// Save the info in the request
+	uint32_t s_ip = ntohl(arp_hdr->s_proto_addr);
+	array<uint8_t, 6> s_mac = arp_hdr->s_hw_addr;
+
+	nextHop nextHop;
+
+	nextHop.mac = s_mac;
+	nextHop.netmapInterface = frame.iface & frame::IFACE_ID;
+
+	auto next_hop_addresses = routingTable->getNextHopMapping();
+
+	// Check if this is a registered next hop
+	for(auto& nh : *next_hop_addresses){
+		if(nh.nh_ip == s_ip && nh.interface->netmapIndex == (frame.iface & frame::IFACE_ID)){
+			mapping.insert({s_ip, nextHop});
+			currentTable->nextHops[nh.index].mac = s_mac;
+
+			return;
+		}
+	}
+
+	// In case we reach this, the node is directly connected
+	directlyConnected.insert({s_ip, nextHop});
+
 
 	// Turn the request into a reply
 	arp_hdr->op = htons(arp::OP_REPLY);
