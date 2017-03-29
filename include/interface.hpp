@@ -19,30 +19,27 @@ struct Interface {
 	std::vector<uint32_t> IPs; //!< All configured IPs
 	std::string name = "noname"; //!< Name of the interface
 
-	/*! Order by netmapIndex.
-	 */
+	/*! Order by netmapIndex. */
 	bool operator< (const Interface& i) const {
 		return netmapIndex > i.netmapIndex;
 	};
 
-	/*! Equal by netmapIndex.
-	 */
+	/*! Equal by netmapIndex. */
 	bool operator== (const Interface& i) const {
 		return netmapIndex == i.netmapIndex;
 	};
 
-	/*! Equal by netmapIndex.
-	 */
+	/*! Equal by netmapIndex. */
 	bool operator== (uint32_t i) const {
 		return netmapIndex == i;
 	};
 
-	/*! Equal by name.
-	 */
+	/*! Equal by name. */
 	bool operator== (std::string str) const {
 		return name == str;
 	};
 
+	/* Return string representation. */
 	std::string toString(){
 		std::stringstream sstream;
 		sstream << "\tName: " << name << std::endl;

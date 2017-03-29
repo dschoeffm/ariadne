@@ -17,12 +17,10 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-/*! Handle Netlink calls.
- */
+/*! Handle Netlink calls. */
 class Netlink {
 public:
-	/*! Return all interfaces of the router (unordered).
-	 */
+	/*! Return all interfaces of the router (unordered). */
 	static std::vector<std::shared_ptr<Interface>> getAllInterfaces();
 };
 

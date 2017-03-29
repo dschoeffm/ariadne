@@ -15,7 +15,7 @@ private:
 	uint32_t masks[33];
 
 public:
-	/*! Set up a new Naive LPM object
+	/*! Set up a new Naive LPM object.
 	 * \param table Routing table to use
 	 */
 	Naive(RoutingTable& table);

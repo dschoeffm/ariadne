@@ -97,6 +97,8 @@ private:
 public:
 	/*! Initialize new Manager.
 	 * Nothing big really
+	 *
+	 * \param interfacesToUse vector of interface names to bind to netmap
 	 */
 	Manager(std::vector<std::string> interfacesToUse) :
 		//numWorkers(std::thread::hardware_concurrency()-1),

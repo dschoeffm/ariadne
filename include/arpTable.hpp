@@ -13,7 +13,7 @@
 #include "frame.hpp"
 #include "headers.hpp"
 #include "interface.hpp"
-#include "spinLock.hpp"
+//#include "spinLock.hpp"
 
 // Forward declaration
 // circular dependencies...
@@ -104,7 +104,8 @@ public:
 	 * An ARP request is prepared for the given IPv4 address
 	 * The ethernet header is set accordingly.
 	 *
-	 * \param request request for which to query
+	 * \param ip ip address to request MAC for
+	 * \param iface the interface the request needs to be sent to
 	 * \param frame frame to write the request in
 	 */
 	void prepareRequest(uint32_t ip, uint16_t iface, frame& frame);

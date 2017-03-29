@@ -106,7 +106,9 @@ protected:
 
 public:
 
-	/*! Set the interfaces on the system. */
+	/*! Set the interfaces on the system.
+	 * \param ifaces interfaces to be used
+	 * */
 	void setInterfaces(std::vector<std::shared_ptr<Interface>> ifaces){
 		interfaces = ifaces;
 	}

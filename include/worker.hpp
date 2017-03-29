@@ -84,7 +84,7 @@ public:
 	 * \param ingressQ Input ring of new packets
 	 * \param egressQ Output ring of processed packets
 	 * \param interfaces Interfaces of the router
-	 * \param manager Manager responsible for this worker
+	 * \param workerId unique ID for this worker
 	 */
 	Worker(
 		std::shared_ptr<LPM> cur_lpm,

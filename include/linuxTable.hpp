@@ -26,7 +26,9 @@ protected:
 	void updateInfo();
 
 public:
-	/*! Create a new kernel based routing table
+	/*! Create a new kernel based routing table.
+	 *
+	 * \param ifaces all the interfaces to be used
 	 */
 	LinuxTable(std::vector<std::shared_ptr<Interface>> ifaces);
 };
