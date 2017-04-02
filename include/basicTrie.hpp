@@ -9,8 +9,6 @@
 
 /*! LPM implementation based on a Trie.
  * This BasicTrie class implements a very basic trie (max. depth 32), to be used for LPM
- *
- * \todo BasicTrie should really take a shared_ptr
  */
 class BasicTrie {
 private:
