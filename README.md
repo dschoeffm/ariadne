@@ -25,6 +25,7 @@ Other programs relying on network connectivity, such as an SSH or routing daemon
 will continue working as normal.
 Packets destined to the router itself are re-injected into the kernel stack.
 Ariadne is designed to integrate itself into a preexisting ecosystem.
+This functionality is however not currently implemented.
 
 ### The Development View
 
